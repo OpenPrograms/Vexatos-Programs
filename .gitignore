@@ -1,0 +1,7 @@
+#Eclipse stuff, yay
+.project
+.settings
+.buildpath
+#WIP stuff
+src/
+
