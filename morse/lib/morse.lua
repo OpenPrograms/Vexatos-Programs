@@ -1,5 +1,6 @@
 --Morse library to parse strings to redstone signals
 local component = require("component")
+local computer = require("computer")
 local event = require("event")
 local sides = require("sides")
 local morse = {}
@@ -100,7 +101,7 @@ function morse.decode(str)
 end
 
 function morse.send(code,side)
---WIP Not working yet
+  --WIP Not working yet
   local multi = 2
   if type(side) == "string" then
     side = sides[side]
@@ -109,20 +110,20 @@ function morse.send(code,side)
   for char in string.gmatch(code,".") do
     table.insert(chars,char)
   end
-  local val = 0
+  local val = 0.1
   for _,char in ipairs(chars) do
     if char == "." then
       rs.setOutput(side, 15)
       os.sleep(0.1*multi)
-      val = 0.1
+      --val = 0.1
     elseif char == "-" then
       rs.setOutput(side, 15)
       os.sleep(0.3*multi)
-      val = 0.1
-    elseif char == "_" then
-      val = 0.3
-    elseif char == " " then
-      val = 0.7
+      --val = 0.1
+      --elseif char == "_" then
+      --val = 0.1
+      --elseif char == " " then
+      ---val = 0.7
     end
     rs.setOutput(side, 0)
     os.sleep(val*multi)
@@ -131,46 +132,40 @@ function morse.send(code,side)
 end
 
 function morse.receive(side)
---WIP Not working yet.
+  --WIP Not working yet.
   if type(side) == "string" then
     side = sides[side]
   end
   local chars = {}
   local rec = true
-  local pcnt,dcnt = 0,0
-  local value
+  local value = 0
+  local elapsed
   local id = 0
+  local time = computer.uptime()
   local s = event.listen("redstone_changed",function()
-    value = rs.getInput(side)
+    elapsed = computer.uptime()-time
     if value >=1 then
-      dcnt = dcnt + 1
-      if pcnt == 3 then
+      if elapsed < 1 and elapsed > 0.5 then
         table.insert(chars,"____")
-      elseif pcnt == 7 then
+      elseif elapsed > 1 then
         table.insert(chars," ")
       end
       if #table >= 6 and table.concat(chars,"",#chars-5) == "...-.-" then
         rec = false
       end
-      pcnt = 0
     else
-      if dcnt == 3 then
-        table.insert(chars,"-")
-        dcnt = 0
-      elseif dcnt ~=0 then
+      if elapsed < 0.5 then
         table.insert(chars,".")
-        dcnt = 0
+      elseif elapsed > 0.5 then
+        table.insert(chars,"-")
       end
-      pcnt = pcnt + 1
-      --[[if pcnt >= 15 then
-      rec = false
-      end]]
     end
-    --os.sleep(0.4)
     event.cancel(id)
     id = event.timer(8,function()
       rec = false
     end)
+    value = rs.getInput(side)
+    time = computer.uptime()
   end)
   repeat
     os.sleep()
