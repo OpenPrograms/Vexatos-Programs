@@ -7,7 +7,7 @@
   For note names, use the syntax of the strings of the Note API
 ]]
 
-local n = require(notes)
+local n = require("note")
 local song = {}
 function song.play(notes,shortest)
   if not type(notes) == "table" then
