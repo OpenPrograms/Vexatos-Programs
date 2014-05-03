@@ -1,4 +1,4 @@
---Example for song API using a table
+--Example for song API using a table as input
 local song = require("song")
 local noteList = {"-E6","G5","G5","B4","G4","G5","G5","D3","D4","F#5","F#5","-E6","G5","G5","B4","G4","G5","G5","D3","D4","F#5","F#5","-E6","G5","G5","B4","G4","G5","G5","D3","D4","F#5","F#5","E3","E4","G5","G5",
   "E5","B4","E5","G5","F#5","E5","-D5","E5_6","-D5","D5","C5","B4","D5","-C5","-C5","B4_4","-E6","-E5","E5_3","G5","F#5","E5","-D5","E5_6","E4","F#5","-G5","-G5","A5_4","F#5_3","G5","F#5","E5","D5","F#5",
