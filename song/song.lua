@@ -7,9 +7,15 @@
   For note names, use the syntax of the strings of the Note API
 ]]
 
-local notes = require(notes)
+local n = require(notes)
 local song = {}
 function song.play(notes,shortest)
+  if not type(notes) == "table" then
+    error("Wrong input given, song.play requires a table as first parameter",2)
+  end
+  if not type(shortest)=="number" then
+    shortest = 0.125
+  end
   if not shortest then shortest = 0.125 end
   local duration
   for i,j in ipairs(notes) do
@@ -28,3 +34,5 @@ function song.play(notes,shortest)
     end
   end
 end
+
+return song
