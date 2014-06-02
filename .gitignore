@@ -1,8 +1,7 @@
-#Eclipse stuff, yay
-.project
-.settings
-.buildpath
-#WIP stuff
-src/
-assets/
-old/
+/*
+!/.gitignore
+!/morse/
+!/song/
+!/README.md
+!/programs.yaml
+!/programs.lua
