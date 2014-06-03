@@ -208,5 +208,105 @@
         name = "Morse API",
         description = "An API to encode a string into morse code",
         author = "Vexatos"
+  },
+  ["moar-packages"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages1"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages2"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages0"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages3"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages-"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages+"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packagesC"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packagesY"] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
+  },
+  ["moar-packages."] = {
+    files = {
+      ["master/morse"] = "/"
+    },
+    dependencies = {
+    },
+        name = "Morse API",
+        description = "An API to encode a string into morse code",
+        author = "Vexatos"
   }
 }
