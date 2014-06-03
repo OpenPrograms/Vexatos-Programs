@@ -7,7 +7,7 @@
     },
         name = "Song API",
         description = "An API to play whole songs using computer.beep",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["test-package"] = {
     files = {
@@ -17,7 +17,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["yet-another-package"] = {
     files = {
@@ -27,7 +27,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["some-package"] = {
     files = {
@@ -37,7 +37,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["yet-another-package2"] = {
     files = {
@@ -47,7 +47,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["yet-another-package3"] = {
     files = {
@@ -57,7 +57,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["yet-another-package4"] = {
     files = {
@@ -67,7 +67,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["yet-another-package5"] = {
     files = {
@@ -77,7 +77,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["yet-another-package6"] = {
     files = {
@@ -87,7 +87,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages"] = {
     files = {
@@ -97,7 +97,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages2"] = {
     files = {
@@ -107,7 +107,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages3"] = {
     files = {
@@ -117,7 +117,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages4"] = {
     files = {
@@ -127,7 +127,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages5"] = {
     files = {
@@ -137,7 +137,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages6"] = {
     files = {
@@ -147,7 +147,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages7"] = {
     files = {
@@ -157,7 +157,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages8"] = {
     files = {
@@ -167,7 +167,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packages9"] = {
     files = {
@@ -177,7 +177,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packagesA"] = {
     files = {
@@ -187,7 +187,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packagesB"] = {
     files = {
@@ -197,7 +197,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["too-many-packagesC"] = {
     files = {
@@ -207,7 +207,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages"] = {
     files = {
@@ -217,7 +217,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages1"] = {
     files = {
@@ -227,7 +227,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages2"] = {
     files = {
@@ -237,7 +237,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages0"] = {
     files = {
@@ -247,7 +247,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages3"] = {
     files = {
@@ -257,7 +257,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages-"] = {
     files = {
@@ -267,7 +267,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages+"] = {
     files = {
@@ -277,7 +277,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packagesC"] = {
     files = {
@@ -287,7 +287,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packagesY"] = {
     files = {
@@ -297,7 +297,7 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   },
   ["moar-packages."] = {
     files = {
@@ -307,6 +307,6 @@
     },
         name = "Morse API",
         description = "An API to encode a string into morse code",
-        author = "Vexatos"
+        authors = "Vexatos"
   }
 }
