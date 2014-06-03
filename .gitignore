@@ -2,6 +2,7 @@
 !/.gitignore
 !/morse/
 !/song/
+!/op-manager/
 !/README.md
 !/programs.yaml
 !/programs.lua

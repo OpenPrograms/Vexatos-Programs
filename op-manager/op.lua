@@ -1,0 +1,232 @@
+--[[
+OpenPrograms browser and downloader, for easy access to many programs
+Author: Vexatos
+]]
+local component = require("component")
+local event = require("event")
+local fs = require("filesystem")
+local serial = require("serialization")
+local shell = require("shell")
+local term = require("term")
+
+local wget = loadfile("/bin/wget.lua")
+
+local gpu = component.gpu
+
+if not component.isAvailable("internet") then
+  io.stderr:write("This program requires an internet card to run.")
+  return
+end
+local internet = require("internet")
+
+local args, options = shell.parse(...)
+
+
+local function printUsage()
+  print("OpenPrograms downloader, use this to browse through and download OpenPrograms programs easily")
+  print("Usage:")
+  print("'op list' to get a list of all the available program packages")
+  print("'op list <filter>' to get a list of available packages containing the specified substring")
+  print("'op info <package>' to get further information about a program package")
+  print("'op install [-f] <package> <path>' to download a package to a directory on your system")
+  print(" -f: Force creation of directories and overwriting of existing files.")
+end
+
+local function getContent(url)
+  local sContent = ""
+  local result, response = pcall(internet.request, url)
+  if result then
+    for chunk in response do
+      sContent = sContent..chunk
+    end
+  end
+  return sContent
+end
+
+local function getRepos()
+  local sRepos = getContent("https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.lua")
+  return serial.unserialize(sRepos)
+end
+
+local function getPackages(repo)
+  local sPackages = getContent("https://raw.githubusercontent.com/OpenPrograms/"..repo.."/master/programs.lua")
+  return serial.unserialize(sPackages)
+end
+
+--Sort table values by alphabet
+local function compare(a,b)
+  for i=1,math.min(#a,#b) do
+    if a:sub(i,i)~=b:sub(i,i) then
+      return a:sub(i,i) < b:sub(i,i)
+    end
+  end
+  return #a < #b
+end
+
+local function downloadFile(url,path)
+  if options.f then
+    wget("-fq",url,path)
+  else
+    wget("-q",url,path)
+  end
+end
+
+local function listPackages(filter)
+  if filter then
+    filter = string.lower(filter)
+  end
+  print("Receiving Package list...")
+  local repos = getRepos()
+  if repos==nil then
+      print("Error while trying to receive repository list")
+      return
+    end
+  local packages = {}
+  for _,j in pairs(repos) do
+    local lPacks = getPackages(j)
+    if lPacks==nil then
+      print("Error while trying to receive package list")
+      return
+    end
+    for k in pairs(lPacks) do
+        table.insert(packages,k)
+    end
+  end
+  if filter then
+    local lPacks = {}
+    for i,j in ipairs(packages) do
+      if (#j>=#filter) and string.find(j,filter,1,true)~=nil then
+        table.insert(lPacks,j)
+      end
+    end
+    packages = lPacks
+  end
+  table.sort(packages,compare)
+  return packages
+end
+
+local function printPackages(tPacks)
+  if not tPacks[1] or tPacks==nil then
+    print("No package matching specified filter found.")
+    return
+  end
+  term.clear()
+  local xRes,yRes = gpu.getResolution()
+  print("--OpenPrograms Package list--")
+  local xCur,yCur = term.getCursor()
+  for _,j in ipairs(tPacks) do
+    term.write(j.."\n")
+    yCur = yCur+1
+    if yCur>yRes-1 then
+      term.write("[Press any key to continue]")
+      local event = event.pull("key_down")
+      if event then
+        term.clear()
+        print("--OpenPrograms Package list--")
+        xCur,yCur = term.getCursor()
+      end
+    end
+  end
+end
+
+local function getInformation(pack)
+  local repos = getRepos()
+  for _,j in pairs(repos) do
+    local lPacks = getPackages(j)
+    for k in pairs(lPacks) do
+      if k==pack then
+        return lPacks[k],j
+      end
+    end
+  end
+  return nil
+end
+
+local function provideInfo(pack)
+  if not pack then
+    printUsage()
+    return
+  end
+  pack = string.lower(pack)
+  local info = getInformation(pack)
+  if not info then
+    print("Package does not exist")
+    return
+  end
+  print("--Information about package '"..pack.."'--")
+  if info.name then
+    print("Name: "..info.name)
+  end
+  if info.description then
+    print("Description: "..info.description)
+  end
+  if info.authors then
+    print("Authors: "..info.authors)
+  end
+end
+
+local function installPackage(pack,path)
+  if not pack or not path then
+    printUsage()
+    return
+  end
+  pack = string.lower(pack)
+  path = shell.resolve(path)
+  local info,repo = getInformation(pack)
+  if not info then
+    print("Package does not exist")
+    return
+  end
+  if fs.exists(path) then
+    if not fs.isDirectory(path) then
+      if options.f then
+        path = fs.concat(fs.path(path),pack)
+        fs.makeDirectory(path)
+      else
+        print("Path points to a file, needs to be a directory.")
+        return
+      end
+    end
+  else
+    if options.f then
+      fs.makeDirectory(path)
+    else
+      print("Directory does not exist.")
+      return
+    end
+  end
+  term.write("Installing Files...")
+  for i,j in pairs(info.files) do
+    local lPath = fs.concat(path,j)
+    if not fs.exists(lPath) then
+      fs.makeDirectory(lPath)
+    end
+    pcall(downloadFile,"https://raw.githubusercontent.com/OpenPrograms/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+  end
+  term.write("Done.\nInstalling Dependencies...")
+  for i,j in pairs(info.dependencies) do
+    if string.lower(string.sub(i,1,4))=="http" then
+      pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+    else
+      local depInfo = getInformation(string.lower(i))
+      if not depInfo or depInfo==nil then
+        term.write("\nDependency package "..i.." does not exist.")
+      end
+      installPackage(string.lower(i),fs.concat(path,j))
+    end
+  end
+  term.write("Done.\n")
+  print("Successfully installed package "..pack)
+end
+
+if args[1] == "list" then
+  local tPacks = listPackages(args[2])
+  printPackages(tPacks)
+elseif args[1] == "info" then
+  provideInfo(args[2])
+elseif args[1] == "install" then
+  installPackage(args[2],args[3])
+else
+  printUsage()
+  return
+end
