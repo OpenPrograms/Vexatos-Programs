@@ -5,6 +5,7 @@ Author: Vexatos
 local component = require("component")
 local event = require("event")
 local fs = require("filesystem")
+local process = require("process")
 local serial = require("serialization")
 local shell = require("shell")
 local term = require("term")
@@ -28,7 +29,9 @@ local function printUsage()
   print("'op list' to get a list of all the available program packages")
   print("'op list <filter>' to get a list of available packages containing the specified substring")
   print("'op info <package>' to get further information about a program package")
-  print("'op install [-f] <package> <path>' to download a package to a directory on your system")
+  print("'op install [-f] <package> [path]' to download a package to a directory on your system (or /usr by default)")
+  print("'op update <package>' to update an already installed package")
+  print("'op uninstall <package>' to remove a package from your system")
   print(" -f: Force creation of directories and overwriting of existing files.")
 end
 
@@ -165,13 +168,50 @@ local function provideInfo(pack)
   end
 end
 
-local function installPackage(pack,path)
-  if not pack or not path then
+local function readFromFile()
+  local path = fs.path(shell.resolve(process.running)).."opdata.svd"
+  local file,msg = io.open(path,"rb")
+  if not file then
+    io.stderr:write("Error while trying to read package names: "..msg)
+    return
+  end
+  local sPacks = file:read(fs.size(path))
+  file:close()
+  return serial.unserialize(sPacks) or {}
+end
+
+local function saveToFile(tPacks)
+  local file,msg = io.open(fs.path(shell.resolve(process.running)).."opdata.svd","wb")
+  if not file then
+    io.stderr:write("Error while trying to save package names: "..msg)
+    return
+  end
+  local sPacks = serial.serialize(tPacks)
+  file:write(sPacks)
+  file:close
+end
+
+local function installPackage(pack,path,update)
+  if not update then
+    update = false
+  end
+  if not pack then
     printUsage()
     return
   end
+  if not path then
+    path = "/usr"
+  end
+  print("Installing package to "..path.."...")
   pack = string.lower(pack)
   path = shell.resolve(path)
+
+  local tPacks = readFromFile()
+  if not tPacks then
+    io.stderr:write("Error while trying to read package names")
+    return
+  end
+
   local info,repo = getInformation(pack)
   if not info then
     print("Package does not exist")
@@ -195,18 +235,40 @@ local function installPackage(pack,path)
       return
     end
   end
+  if tPacks[pack] and (not update) then
+    print("Package already has been installed")
+    return
+  elseif not tPacks[pack] and update then
+    print("Package has not been installed.")
+    print("If it has, uninstall it manually and reinstall it.")
+    return
+  end
+  if update then
+    term.write("Removing old files...")
+    for i,j in pairs(tPacks[pack]) do
+      fs.remove(j)
+    end
+    term.write("Done.\n")
+  end
+  tPacks[pack] = {}
   term.write("Installing Files...")
   for i,j in pairs(info.files) do
     local lPath = fs.concat(path,j)
     if not fs.exists(lPath) then
       fs.makeDirectory(lPath)
     end
-    pcall(downloadFile,"https://raw.githubusercontent.com/OpenPrograms/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+    local success = pcall(downloadFile,"https://raw.githubusercontent.com/OpenPrograms/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+    if success then
+      table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"))
+    end
   end
   term.write("Done.\nInstalling Dependencies...")
   for i,j in pairs(info.dependencies) do
     if string.lower(string.sub(i,1,4))=="http" then
-      pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+      local success = pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+      if success then
+        table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"))
+      end
     else
       local depInfo = getInformation(string.lower(i))
       if not depInfo or depInfo==nil then
@@ -216,7 +278,31 @@ local function installPackage(pack,path)
     end
   end
   term.write("Done.\n")
+  saveToFile(tPacks)
   print("Successfully installed package "..pack)
+end
+
+local function unintallPackage(pack)
+  local info,repo = getInformation(pack)
+  if not info then
+    print("Package does not exist")
+    return
+  end
+  local tFiles = readFromFile()
+  if not tPacks then
+    io.stderr:write("Error while trying to read package names")
+    return
+  end
+  if not tPacks[pack] then
+      print("Package has not been installed.")
+      print("If it has, you have to remove it manually.")
+      return
+  end
+  term.write("Removing package files...")
+    for i,j in pairs(tPacks[pack]) do
+      fs.remove(j)
+    end
+    term.write("Done.\n")
 end
 
 if args[1] == "list" then
@@ -225,7 +311,11 @@ if args[1] == "list" then
 elseif args[1] == "info" then
   provideInfo(args[2])
 elseif args[1] == "install" then
-  installPackage(args[2],args[3])
+  installPackage(args[2],args[3],false)
+elseif args[1] == "update" then
+  installPackage(args[2],args[3],true)
+elseif args[1] == "uninstall" then
+  uninstallPackage(args[2])
 else
   printUsage()
   return
