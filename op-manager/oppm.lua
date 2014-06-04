@@ -1,5 +1,5 @@
 --[[
-OpenPrograms browser and downloader, for easy access to many programs
+OpenPrograms package manager, browser and downloader, for easy access to many programs
 Author: Vexatos
 ]]
 local component = require("component")
@@ -24,7 +24,7 @@ local args, options = shell.parse(...)
 
 
 local function printUsage()
-  print("OpenPrograms downloader, use this to browse through and download OpenPrograms programs easily")
+  print("OpenPrograms Package Manager, use this to browse through and download OpenPrograms programs easily")
   print("Usage:")
   print("'op list' to get a list of all the available program packages")
   print("'op list <filter>' to get a list of available packages containing the specified substring")
@@ -175,7 +175,7 @@ local function readFromFile()
     io.stderr:write("Error while trying to read package names: "..msg)
     return
   end
-  local sPacks = file:read(fs.size(path))
+  local sPacks = file:read("*a")
   file:close()
   return serial.unserialize(sPacks) or {}
 end
@@ -282,7 +282,7 @@ local function installPackage(pack,path,update)
   print("Successfully installed package "..pack)
 end
 
-local function unintallPackage(pack)
+local function uninstallPackage(pack)
   local info,repo = getInformation(pack)
   if not info then
     print("Package does not exist")
