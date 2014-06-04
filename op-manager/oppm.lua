@@ -177,7 +177,7 @@ local function readFromFile()
   end
   local sPacks = file:read("*a")
   file:close()
-  return serial.unserialize(sPacks) or {}
+  return serial.unserialize(sPacks) or {-1}
 end
 
 local function saveToFile(tPacks)
