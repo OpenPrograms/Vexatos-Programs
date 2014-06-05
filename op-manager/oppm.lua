@@ -227,7 +227,7 @@ local function installPackage(pack,path,update)
   if not tPacks then
     io.stderr:write("Error while trying to read package names")
     return
-  elseif tPacks[1]=-1 then
+  elseif tPacks[1]==-1 then
     table.remove(tPacks,1)
   end
 
@@ -313,7 +313,7 @@ local function uninstallPackage(pack)
   if not tPacks then
     io.stderr:write("Error while trying to read package names")
     return
-  elseif tPacks[1]=-1 then
+  elseif tPacks[1]==-1 then
     table.remove(tPacks,1)
   end
   if not tPacks[pack] then
