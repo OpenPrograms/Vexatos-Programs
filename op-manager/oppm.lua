@@ -188,7 +188,7 @@ local function saveToFile(tPacks)
   end
   local sPacks = serial.serialize(tPacks)
   file:write(sPacks)
-  file:close
+  file:close()
 end
 
 local function installPackage(pack,path,update)
