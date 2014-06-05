@@ -109,7 +109,7 @@ local function listPackages(filter)
 end
 
 local function printPackages(tPacks)
-  if not tPacks[1] or tPacks==nil then
+  if tPacks==nil or not tPacks[1] then
     print("No package matching specified filter found.")
     return
   end
