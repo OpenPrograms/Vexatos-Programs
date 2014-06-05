@@ -89,7 +89,7 @@ local function listPackages(filter)
   for _,j in pairs(repos) do
     local lPacks = getPackages(j)
     if lPacks==nil then
-      print("Error while trying to receive package list")
+      print("Error while trying to receive package list for "..j)
       return
     end
     for k in pairs(lPacks) do
