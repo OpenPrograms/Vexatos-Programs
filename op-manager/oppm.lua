@@ -310,19 +310,19 @@ local function uninstallPackage(pack)
     return
   end
   local tFiles = readFromFile()
-  if not tPacks then
+  if not tFiles then
     io.stderr:write("Error while trying to read package names")
     return
-  elseif tPacks[1]==-1 then
-    table.remove(tPacks,1)
+  elseif tFiles[1]==-1 then
+    table.remove(tFiles,1)
   end
-  if not tPacks[pack] then
+  if not tFiles[pack] then
       print("Package has not been installed.")
       print("If it has, you have to remove it manually.")
       return
   end
   term.write("Removing package files...")
-    for i,j in pairs(tPacks[pack]) do
+    for i,j in pairs(tFiles[pack]) do
       fs.remove(j)
     end
     term.write("Done.\n")
