@@ -75,6 +75,7 @@ local function downloadFile(url,path)
 end
 
 local function listPackages(filter)
+  filter = filter or false
   if filter then
     filter = string.lower(filter)
   end
@@ -156,15 +157,26 @@ local function provideInfo(pack)
     print("Package does not exist")
     return
   end
+  local done = false
   print("--Information about package '"..pack.."'--")
   if info.name then
     print("Name: "..info.name)
+    done = true
   end
   if info.description then
     print("Description: "..info.description)
+    done = true
   end
   if info.authors then
     print("Authors: "..info.authors)
+    done = true
+  end
+  if info.instructions then
+    print("Instructions: "..info.authors)
+    done = true
+  end
+  if not done then
+    print("No information provided.")
   end
 end
 
