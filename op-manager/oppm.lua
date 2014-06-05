@@ -279,19 +279,21 @@ local function installPackage(pack,path,update)
       table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
     end
   end
-  term.write("Done.\nInstalling Dependencies...")
-  for i,j in pairs(info.dependencies) do
-    if string.lower(string.sub(i,1,4))=="http" then
-      local success = pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
-      if success then
-        table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+  if info.dependencies then
+    term.write("Done.\nInstalling Dependencies...")
+    for i,j in pairs(info.dependencies) do
+      if string.lower(string.sub(i,1,4))=="http" then
+        local success = pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+        if success then
+          table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+        end
+      else
+        local depInfo = getInformation(string.lower(i))
+        if not depInfo or depInfo==nil then
+          term.write("\nDependency package "..i.." does not exist.")
+        end
+        installPackage(string.lower(i),fs.concat(path,j))
       end
-    else
-      local depInfo = getInformation(string.lower(i))
-      if not depInfo or depInfo==nil then
-        term.write("\nDependency package "..i.." does not exist.")
-      end
-      installPackage(string.lower(i),fs.concat(path,j))
     end
   end
   term.write("Done.\n")
