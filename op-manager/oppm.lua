@@ -259,7 +259,7 @@ local function installPackage(pack,path,update)
     end
     local success = pcall(downloadFile,"https://raw.githubusercontent.com/OpenPrograms/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
     if success then
-      table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"))
+      table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1")))
     end
   end
   term.write("Done.\nInstalling Dependencies...")
@@ -267,7 +267,7 @@ local function installPackage(pack,path,update)
     if string.lower(string.sub(i,1,4))=="http" then
       local success = pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
       if success then
-        table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"))
+        table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1")))
       end
     else
       local depInfo = getInformation(string.lower(i))
