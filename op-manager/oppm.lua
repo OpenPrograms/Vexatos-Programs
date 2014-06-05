@@ -181,7 +181,8 @@ local function provideInfo(pack)
 end
 
 local function readFromFile()
-  local path = fs.path(shell.resolve(process.running())).."opdata.svd"
+  local tPath = process.running()
+  local path = fs.path(shell.resolve(tPath)).."opdata.svd"
   local file,msg = io.open(path,"rb")
   if not file then
     io.stderr:write("Error while trying to read package names: "..msg)
@@ -193,7 +194,8 @@ local function readFromFile()
 end
 
 local function saveToFile(tPacks)
-  local file,msg = io.open(fs.path(shell.resolve(process.running())).."opdata.svd","wb")
+  local tPath = process.running()
+  local file,msg = io.open(fs.path(shell.resolve(tPath)).."opdata.svd","wb")
   if not file then
     io.stderr:write("Error while trying to save package names: "..msg)
     return
