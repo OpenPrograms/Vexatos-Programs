@@ -183,6 +183,9 @@ end
 local function readFromFile()
   local tPath = process.running()
   local path = fs.path(shell.resolve(tPath)).."opdata.svd"
+  if not fs.exists(path) then
+    return {-1}
+  end
   local file,msg = io.open(path,"rb")
   if not file then
     io.stderr:write("Error while trying to read package names: "..msg)
