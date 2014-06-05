@@ -1,8 +1,8 @@
 {
   ["song"] = {
     files = {
-      ["master/song/song.lua"] = "/"
-      ["master/song/exampleSong1.lua"] = "/"
+      ["master/song/song.lua"] = "/",
+      ["master/song/exampleSong1.lua"] = "/",
       ["master/song/exampleSong2.lua"] = "/"
     },
     dependencies = {
