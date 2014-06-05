@@ -11,7 +11,8 @@
       },
         name = "Package name",
         description = "This is an example description",
-        authors = "Someone, someone else"
+        authors = "Someone, someone else",
+        instructions = "Additional installation or general instructions go here, this is an optional line."
     },
     ["yet-another-package"] = {
             ...
