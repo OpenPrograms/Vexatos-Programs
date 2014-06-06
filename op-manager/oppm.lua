@@ -122,7 +122,9 @@ local function listPackages(filter)
       return
     end
     for k in pairs(lPacks) do
+      if not k.hidden then
         table.insert(packages,k)
+      end
     end
   end
   if filter then
