@@ -209,19 +209,19 @@ local function saveToFile(tPacks)
 end
 
 local function installPackage(pack,path,update)
-  if not update then
-    update = false
-  end
+  update = update or false
   if not pack then
     printUsage()
     return
   end
-  if not path then
+  if not path and not update then
     path = "/usr"
+    print("Installing package to "..path.."...")
+  elseif not update then
+    path = shell.resolve(path)
+    print("Installing package to "..path.."...")
   end
-  print("Installing package to "..path.."...")
   pack = string.lower(pack)
-  path = shell.resolve(path)
 
   local tPacks = readFromFile()
   if not tPacks then
@@ -236,7 +236,21 @@ local function installPackage(pack,path,update)
     print("Package does not exist")
     return
   end
-  if fs.exists(path) then
+  if update then
+    path = nil
+    for i,j in pairs(info.files) do
+      for k,v in pairs(tPacks[pack]) do
+        if k==i then
+          path = string.gsub(fs.path(v),j.."/?$","/")
+          break
+        end
+      end
+      if path then
+        break
+      end
+    end
+  end
+  if not update and fs.exists(path) then
     if not fs.isDirectory(path) then
       if options.f then
         path = fs.concat(fs.path(path),pack)
@@ -246,7 +260,7 @@ local function installPackage(pack,path,update)
         return
       end
     end
-  else
+  elseif not update then
     if options.f then
       fs.makeDirectory(path)
     else
@@ -278,7 +292,7 @@ local function installPackage(pack,path,update)
     end
     local success = pcall(downloadFile,"https://raw.githubusercontent.com/OpenPrograms/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
     if success then
-      table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+      tPacks[pack][i] = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
     end
   end
   if info.dependencies then
@@ -287,7 +301,7 @@ local function installPackage(pack,path,update)
       if string.lower(string.sub(i,1,4))=="http" then
         local success = pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
         if success then
-          table.insert(tPacks[pack],fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+          tPacks[pack][i] = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
         end
       else
         local depInfo = getInformation(string.lower(i))
