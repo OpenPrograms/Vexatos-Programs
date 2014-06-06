@@ -26,8 +26,9 @@ local args, options = shell.parse(...)
 local function printUsage()
   print("OpenPrograms Package Manager, use this to browse through and download OpenPrograms programs easily")
   print("Usage:")
-  print("'oppm list' to get a list of all the available program packages")
-  print("'oppm list <filter>' to get a list of available packages containing the specified substring")
+  print("'oppm list [-i]' to get a list of all the available program packages")
+  print("'oppm list [-i] <filter>' to get a list of available packages containing the specified substring")
+  print(" -i: Only list already installed packages")
   print("'oppm info <package>' to get further information about a program package")
   print("'oppm install [-f] <package> [path]' to download a package to a directory on your system (or /usr by default)")
   print("'oppm update <package>' to update an already installed package")
@@ -74,6 +75,34 @@ local function downloadFile(url,path)
   end
 end
 
+local function readFromFile()
+  local tPath = process.running()
+  local path = fs.path(shell.resolve(tPath)).."opdata.svd"
+  if not fs.exists(path) then
+    return {-1}
+  end
+  local file,msg = io.open(path,"rb")
+  if not file then
+    io.stderr:write("Error while trying to read package names: "..msg)
+    return
+  end
+  local sPacks = file:read("*a")
+  file:close()
+  return serial.unserialize(sPacks) or {-1}
+end
+
+local function saveToFile(tPacks)
+  local tPath = process.running()
+  local file,msg = io.open(fs.path(shell.resolve(tPath)).."opdata.svd","wb")
+  if not file then
+    io.stderr:write("Error while trying to save package names: "..msg)
+    return
+  end
+  local sPacks = serial.serialize(tPacks)
+  file:write(sPacks)
+  file:close()
+end
+
 local function listPackages(filter)
   filter = filter or false
   if filter then
@@ -100,6 +129,16 @@ local function listPackages(filter)
     local lPacks = {}
     for i,j in ipairs(packages) do
       if (#j>=#filter) and string.find(j,filter,1,true)~=nil then
+          table.insert(lPacks,j)
+      end
+    end
+    packages = lPacks
+  end
+  if options.i then
+    local lPacks = {}
+    local tPacks = readFromFile()
+    for i,j in ipairs(packages) do
+      if tPacks[j] then
         table.insert(lPacks,j)
       end
     end
@@ -180,34 +219,6 @@ local function provideInfo(pack)
   end
 end
 
-local function readFromFile()
-  local tPath = process.running()
-  local path = fs.path(shell.resolve(tPath)).."opdata.svd"
-  if not fs.exists(path) then
-    return {-1}
-  end
-  local file,msg = io.open(path,"rb")
-  if not file then
-    io.stderr:write("Error while trying to read package names: "..msg)
-    return
-  end
-  local sPacks = file:read("*a")
-  file:close()
-  return serial.unserialize(sPacks) or {-1}
-end
-
-local function saveToFile(tPacks)
-  local tPath = process.running()
-  local file,msg = io.open(fs.path(shell.resolve(tPath)).."opdata.svd","wb")
-  if not file then
-    io.stderr:write("Error while trying to save package names: "..msg)
-    return
-  end
-  local sPacks = serial.serialize(tPacks)
-  file:write(sPacks)
-  file:close()
-end
-
 local function installPackage(pack,path,update)
   update = update or false
   if not pack then
@@ -237,6 +248,7 @@ local function installPackage(pack,path,update)
     return
   end
   if update then
+    print("Updating package "..pack)
     path = nil
     for i,j in pairs(info.files) do
       for k,v in pairs(tPacks[pack]) do
@@ -249,6 +261,7 @@ local function installPackage(pack,path,update)
         break
       end
     end
+    path = shell.resolve(string.gsub(path,"^/?","/"),nil)
   end
   if not update and fs.exists(path) then
     if not fs.isDirectory(path) then
@@ -305,7 +318,7 @@ local function installPackage(pack,path,update)
         end
       else
         local depInfo = getInformation(string.lower(i))
-        if not depInfo or depInfo==nil then
+        if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
         installPackage(string.lower(i),fs.concat(path,j))
@@ -336,10 +349,14 @@ local function uninstallPackage(pack)
       return
   end
   term.write("Removing package files...")
-    for i,j in pairs(tFiles[pack]) do
-      fs.remove(j)
-    end
-    term.write("Done.\n")
+  for i,j in pairs(tFiles[pack]) do
+    fs.remove(j)
+  end
+  term.write("Done\nRemoving references...")
+  tFiles[pack]=nil
+  saveToFile(tFiles)
+  term.write("Done.\n")
+  print("Successfully uninstalled package "..pack)
 end
 
 if args[1] == "list" then
@@ -350,7 +367,7 @@ elseif args[1] == "info" then
 elseif args[1] == "install" then
   installPackage(args[2],args[3],false)
 elseif args[1] == "update" then
-  installPackage(args[2],args[3],true)
+  installPackage(args[2],nil,true)
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
 else
