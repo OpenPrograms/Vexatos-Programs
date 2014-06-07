@@ -53,7 +53,7 @@ local function getRepos()
 end
 
 local function getPackages(repo)
-  local sPackages = getContent("https://raw.githubusercontent.com/OpenPrograms/"..repo.."/master/programs.cfg")
+  local sPackages = getContent("https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
   return serial.unserialize(sPackages)
 end
 
