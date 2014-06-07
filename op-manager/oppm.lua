@@ -48,12 +48,12 @@ local function getContent(url)
 end
 
 local function getRepos()
-  local sRepos = getContent("https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.lua")
+  local sRepos = getContent("https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
   return serial.unserialize(sRepos)
 end
 
 local function getPackages(repo)
-  local sPackages = getContent("https://raw.githubusercontent.com/OpenPrograms/"..repo.."/master/programs.lua")
+  local sPackages = getContent("https://raw.githubusercontent.com/OpenPrograms/"..repo.."/master/programs.cfg")
   return serial.unserialize(sPackages)
 end
 
