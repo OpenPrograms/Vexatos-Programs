@@ -192,7 +192,7 @@ local function getInformation(pack)
       elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
           if k==pack then
-            return lPacks[k],j
+            return lPacks[k],j.repo
           end
         end
       end
@@ -319,7 +319,7 @@ local function installPackage(pack,path,update)
     if not fs.exists(lPath) then
       fs.makeDirectory(lPath)
     end
-    local success = pcall(downloadFile,"https://raw.githubusercontent.com/OpenPrograms/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+    local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
     if success then
       tPacks[pack][i] = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
     end
