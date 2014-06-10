@@ -39,11 +39,12 @@ end
 local function getContent(url)
   local sContent = ""
   local result, response = pcall(internet.request, url)
-  if result then
+  if not result then
+    return nil
+  end
     for chunk in response do
       sContent = sContent..chunk
     end
-  end
   return sContent
 end
 
@@ -53,12 +54,8 @@ local function getRepos()
 end
 
 local function getPackages(repo)
-  --[[local success,sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
-  if not success then
-    return -1
-  end]]
   local sPackages = getContent("https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
-  if sPackages=="" then
+  if not sPackages then
     return -1
   end
   return serial.unserialize(sPackages)
@@ -229,8 +226,8 @@ local function provideInfo(pack)
     print("Authors: "..info.authors)
     done = true
   end
-  if info.instructions then
-    print("Instructions: "..info.instructions)
+  if info.note then
+    print("Note: "..info.note)
     done = true
   end
   if not done then
