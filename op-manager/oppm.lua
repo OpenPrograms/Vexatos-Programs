@@ -53,7 +53,10 @@ local function getRepos()
 end
 
 local function getPackages(repo)
-  local sPackages = getContent("https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
+  local success,sPackages = pcall(getContent("https://raw.githubusercontent.com/"..repo.."/master/programs.cfg"))
+  if not success then
+    return nil
+  end
   return serial.unserialize(sPackages)
 end
 
