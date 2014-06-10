@@ -53,14 +53,18 @@ local function getRepos()
 end
 
 local function getPackages(repo)
-  local success,sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
+  --[[local success,sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
   if not success then
+    return -1
+  end]]
+  local sPackages = getContent("https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
+  if sPackages=="" then
     return -1
   end
   return serial.unserialize(sPackages)
 end
 
---Sort table values by alphabet
+--For sorting table values by alphabet
 local function compare(a,b)
   for i=1,math.min(#a,#b) do
     if a:sub(i,i)~=b:sub(i,i) then
@@ -122,9 +126,9 @@ local function listPackages(filter)
     if j.repo then
       local lPacks = getPackages(j.repo)
       if lPacks==nil then
-        print("Error while trying to receive package list for " .. tostring(j.repo))
+        print("Error while trying to receive package list for " .. j.repo)
         return
-      elseif not type(lPacks) == "number" then
+      elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
           if not k.hidden then
             table.insert(packages,k)
@@ -186,9 +190,9 @@ local function getInformation(pack)
     if j.repo then
       local lPacks = getPackages(j.repo)
       if lPacks==nil then
-        print("Error while trying to receive package list for "..tostring(j.repo))
+        print("Error while trying to receive package list for "..j.repo)
         return
-      elseif not type(lPacks) == "number" then
+      elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
           if k==pack then
             return lPacks[k],j
@@ -226,7 +230,7 @@ local function provideInfo(pack)
     done = true
   end
   if info.instructions then
-    print("Instructions: "..info.authors)
+    print("Instructions: "..info.instructions)
     done = true
   end
   if not done then
