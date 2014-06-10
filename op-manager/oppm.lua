@@ -116,14 +116,16 @@ local function listPackages(filter)
     end
   local packages = {}
   for _,j in pairs(repos) do
-    local lPacks = getPackages(j)
-    if lPacks==nil then
-      print("Error while trying to receive package list for "..j)
-      return
-    end
-    for k in pairs(lPacks) do
-      if not k.hidden then
-        table.insert(packages,k)
+    if j.repo then
+      local lPacks = getPackages(j.repo)
+      if lPacks==nil then
+        print("Error while trying to receive package list for "..j)
+        return
+      end
+      for k in pairs(lPacks) do
+        if not k.hidden then
+          table.insert(packages,k)
+        end
       end
     end
   end
