@@ -53,9 +53,9 @@ local function getRepos()
 end
 
 local function getPackages(repo)
-  local success,sPackages = pcall(getContent("https://raw.githubusercontent.com/"..repo.."/master/programs.cfg"))
+  local success,sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
   if not success then
-    return nil
+    return -1
   end
   return serial.unserialize(sPackages)
 end
@@ -124,10 +124,11 @@ local function listPackages(filter)
       if lPacks==nil then
         print("Error while trying to receive package list for "..j)
         return
-      end
-      for k in pairs(lPacks) do
-        if not k.hidden then
+      elseif not type(lPacks) == "number" then
+        for k in pairs(lPacks) do
+          if not k.hidden then
           table.insert(packages,k)
+          end
         end
       end
     end
@@ -182,10 +183,17 @@ end
 local function getInformation(pack)
   local repos = getRepos()
   for _,j in pairs(repos) do
-    local lPacks = getPackages(j)
-    for k in pairs(lPacks) do
-      if k==pack then
-        return lPacks[k],j
+    if j.repo then
+      local lPacks = getPackages(j.repo)
+      if lPacks==nil then
+        print("Error while trying to receive package list for "..j)
+        return
+      elseif not type(lPacks) == "number" then
+        for k in pairs(lPacks) do
+          if k==pack then
+            return lPacks[k],j
+          end
+        end
       end
     end
   end
