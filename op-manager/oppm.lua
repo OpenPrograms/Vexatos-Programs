@@ -122,7 +122,7 @@ local function listPackages(filter)
     if j.repo then
       local lPacks = getPackages(j.repo)
       if lPacks==nil then
-        print("Error while trying to receive package list for "..j)
+        print("Error while trying to receive package list for " .. tostring(j.repo))
         return
       elseif not type(lPacks) == "number" then
         for k in pairs(lPacks) do
@@ -186,7 +186,7 @@ local function getInformation(pack)
     if j.repo then
       local lPacks = getPackages(j.repo)
       if lPacks==nil then
-        print("Error while trying to receive package list for "..j)
+        print("Error while trying to receive package list for "..tostring(j.repo))
         return
       elseif not type(lPacks) == "number" then
         for k in pairs(lPacks) do
