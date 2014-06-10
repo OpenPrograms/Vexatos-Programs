@@ -127,7 +127,7 @@ local function listPackages(filter)
       elseif not type(lPacks) == "number" then
         for k in pairs(lPacks) do
           if not k.hidden then
-          table.insert(packages,k)
+            table.insert(packages,k)
           end
         end
       end
