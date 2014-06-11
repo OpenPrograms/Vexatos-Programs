@@ -355,18 +355,30 @@ local function installPackage(pack,path,update)
     if not fs.exists(lPath) then
       fs.makeDirectory(lPath)
     end
-    local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+    local nPath
+    if string.find(j,"^//",1,true) then
+      nPath = string.gsub(j,"^//","/")
+    else
+      nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
+    end
+    local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
     if success then
-      tPacks[pack][i] = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
+      tPacks[pack][i] = nPath
     end
   end
   if info.dependencies then
     term.write("Done.\nInstalling Dependencies...")
     for i,j in pairs(info.dependencies) do
+      local nPath
+      if string.find(j,"^//",1,true) then
+        nPath = string.gsub(j,"^//","/")
+      else
+        nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
+      end
       if string.lower(string.sub(i,1,4))=="http" then
-        local success = pcall(downloadFile,i,fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil))
+        local success = pcall(downloadFile,i,nPath)
         if success then
-          tPacks[pack][i] = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
+          tPacks[pack][i] = nPath
         end
       else
         local depInfo = getInformation(string.lower(i))
