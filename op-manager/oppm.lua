@@ -32,6 +32,7 @@ local function printUsage()
   print("'oppm info <package>' to get further information about a program package")
   print("'oppm install [-f] <package> [path]' to download a package to a directory on your system (or /usr by default)")
   print("'oppm update <package>' to update an already installed package")
+  print("'oppm update *' to update every already installed package")
   print("'oppm uninstall <package>' to remove a package from your system")
   print(" -f: Force creation of directories and overwriting of existing files.")
 end
@@ -81,7 +82,10 @@ end
 
 local function readFromFile()
   local tPath = process.running()
-  local path = fs.path(shell.resolve(tPath)).."opdata.svd"
+  local path = fs.path(shell.resolve(tPath)).."etc/opdata.svd"
+  if not fs.exists(fs.path(path)) then
+    fs.makeDirectory(fs.path(path))
+  end
   if not fs.exists(path) then
     return {-1}
   end
@@ -97,7 +101,7 @@ end
 
 local function saveToFile(tPacks)
   local tPath = process.running()
-  local file,msg = io.open(fs.path(shell.resolve(tPath)).."opdata.svd","wb")
+  local file,msg = io.open(fs.path(shell.resolve(tPath)).."etc/opdata.svd","wb")
   if not file then
     io.stderr:write("Error while trying to save package names: "..msg)
     return
@@ -121,9 +125,10 @@ local function listPackages(filter)
   local packages = {}
   for _,j in pairs(repos) do
     if j.repo then
+      print("Checking Repository "..j.repo)
       local lPacks = getPackages(j.repo)
       if lPacks==nil then
-        print("Error while trying to receive package list for " .. j.repo)
+        io.stderr:write("Error while trying to receive package list for " .. j.repo.."\n")
         return
       elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
@@ -187,8 +192,7 @@ local function getInformation(pack)
     if j.repo then
       local lPacks = getPackages(j.repo)
       if lPacks==nil then
-        print("Error while trying to receive package list for "..j.repo)
-        return
+        io.stderr:write("Error while trying to receive package list for "..j.repo.."\n")
       elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
           if k==pack then
@@ -252,7 +256,7 @@ local function installPackage(pack,path,update)
 
   local tPacks = readFromFile()
   if not tPacks then
-    io.stderr:write("Error while trying to read package names")
+    io.stderr:write("Error while trying to read local package names")
     return
   elseif tPacks[1]==-1 then
     table.remove(tPacks,1)
@@ -298,7 +302,7 @@ local function installPackage(pack,path,update)
     end
   end
   if tPacks[pack] and (not update) then
-    print("Package already has been installed")
+    print("Package has already been installed")
     return
   elseif not tPacks[pack] and update then
     print("Package has not been installed.")
@@ -375,6 +379,29 @@ local function uninstallPackage(pack)
   print("Successfully uninstalled package "..pack)
 end
 
+local function updatePackage(pack)
+  if pack=="*" then
+    print("Updating everything...")
+    local tFiles = readFromFile()
+    if not tFiles then
+      io.stderr:write("Error while trying to read package names")
+      return
+    elseif tFiles[1]==-1 then
+      table.remove(tFiles,1)
+    end
+    local done = false
+    for i in pairs(tFiles) do
+      installPackage(i,nil,true)
+      done = true
+    end
+    if not done then
+      print("No package has been installed so far.")
+    end
+  else
+    installPackage(args[2],nil,true)
+  end
+end
+
 if args[1] == "list" then
   local tPacks = listPackages(args[2])
   printPackages(tPacks)
@@ -383,7 +410,7 @@ elseif args[1] == "info" then
 elseif args[1] == "install" then
   installPackage(args[2],args[3],false)
 elseif args[1] == "update" then
-  installPackage(args[2],nil,true)
+  updatePackage(args[2])
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
 else
