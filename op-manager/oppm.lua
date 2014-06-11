@@ -86,11 +86,11 @@ end
 
 local function readFromFile(fNum)
   local tPath = process.running()
-  local path = fs.path(shell.resolve(tPath))
+  local path
   if fNum == 1 then
-    path = path.."etc/opdata.svd"
+    path = "/etc/opdata.svd"
   elseif fNum == 2 then
-    path = path.."etc/oppm.cfg"
+    path = "/etc/oppm.cfg"
   end
   if not fs.exists(fs.path(path)) then
     fs.makeDirectory(fs.path(path))
