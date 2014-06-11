@@ -50,7 +50,11 @@ local function getContent(url)
 end
 
 local function getRepos()
-  local sRepos = getContent("https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
+  local success, sRepos = pcall(getContent,"https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
+  if not success then
+    io.stderr:write("Could not connect to the Internet. Please ensure you have an Internet connection.")
+    return -1
+  end
   return serial.unserialize(sRepos)
 end
 
@@ -80,9 +84,14 @@ local function downloadFile(url,path)
   end
 end
 
-local function readFromFile()
+local function readFromFile(fNum)
   local tPath = process.running()
-  local path = fs.path(shell.resolve(tPath)).."etc/opdata.svd"
+  local path = fs.path(shell.resolve(tPath))
+  if fNum == 1 then
+    path = path.."etc/opdata.svd"
+  elseif fNum == 2 then
+    path = path.."etc/oppm.cfg"
+  end
   if not fs.exists(fs.path(path)) then
     fs.makeDirectory(fs.path(path))
   end
@@ -91,7 +100,7 @@ local function readFromFile()
   end
   local file,msg = io.open(path,"rb")
   if not file then
-    io.stderr:write("Error while trying to read package names: "..msg)
+    io.stderr:write("Error while trying to read file at "..path..": "..msg)
     return
   end
   local sPacks = file:read("*a")
@@ -116,44 +125,54 @@ local function listPackages(filter)
   if filter then
     filter = string.lower(filter)
   end
-  print("Receiving Package list...")
-  local repos = getRepos()
-  if repos==nil then
-      print("Error while trying to receive repository list")
-      return
-    end
   local packages = {}
-  for _,j in pairs(repos) do
-    if j.repo then
-      print("Checking Repository "..j.repo)
-      local lPacks = getPackages(j.repo)
-      if lPacks==nil then
-        io.stderr:write("Error while trying to receive package list for " .. j.repo.."\n")
+  print("Receiving Package list...")
+  if not options.i then
+    local success, repos = pcall(getRepos)
+    if not success or repos==-1 then
+      io.stderr:write("Unable to connect to the Internet.\n")
+      return
+    elseif repos==nil then
+        print("Error while trying to receive repository list")
         return
-      elseif type(lPacks) == "table" then
-        for k in pairs(lPacks) do
-          if not k.hidden then
-            table.insert(packages,k)
+    end
+    for _,j in pairs(repos) do
+      if j.repo then
+        print("Checking Repository "..j.repo)
+        local lPacks = getPackages(j.repo)
+        if lPacks==nil then
+          io.stderr:write("Error while trying to receive package list for " .. j.repo.."\n")
+          return
+        elseif type(lPacks) == "table" then
+          for k in pairs(lPacks) do
+            if not k.hidden then
+              table.insert(packages,k)
+            end
           end
         end
       end
     end
+    local lRepos = readFromFile(2)
+    for _,j in pairs(lRepos.repos) do
+      for k in pairs(j) do
+        if not k.hidden then
+          table.insert(packages,k)
+        end
+      end
+    end
+  else
+    local lPacks = {}
+    local tPacks = readFromFile(1)
+    for i in pairs(tPacks) do
+      table.insert(lPacks,i)
+    end
+    packages = lPacks
   end
   if filter then
     local lPacks = {}
     for i,j in ipairs(packages) do
       if (#j>=#filter) and string.find(j,filter,1,true)~=nil then
           table.insert(lPacks,j)
-      end
-    end
-    packages = lPacks
-  end
-  if options.i then
-    local lPacks = {}
-    local tPacks = readFromFile()
-    for i,j in ipairs(packages) do
-      if tPacks[j] then
-        table.insert(lPacks,j)
       end
     end
     packages = lPacks
@@ -187,7 +206,11 @@ local function printPackages(tPacks)
 end
 
 local function getInformation(pack)
-  local repos = getRepos()
+  local success, repos = pcall(getRepos)
+  if not success or repos==-1 then
+    io.stderr:write("Unable to connect to the Internet.\n")
+    return
+  end
   for _,j in pairs(repos) do
     if j.repo then
       local lPacks = getPackages(j.repo)
@@ -199,6 +222,14 @@ local function getInformation(pack)
             return lPacks[k],j.repo
           end
         end
+      end
+    end
+  end
+  local lRepos = readFromFile(2)
+  for i,j in pairs(lRepos.repos) do
+    for k in pairs(j) do
+      if k==pack then
+        return j[k],i
       end
     end
   end
@@ -246,7 +277,8 @@ local function installPackage(pack,path,update)
     return
   end
   if not path and not update then
-    path = "/usr"
+    local lConfig = readFromFile(2)
+    path = lConfig.path or "/usr"
     print("Installing package to "..path.."...")
   elseif not update then
     path = shell.resolve(path)
@@ -254,7 +286,7 @@ local function installPackage(pack,path,update)
   end
   pack = string.lower(pack)
 
-  local tPacks = readFromFile()
+  local tPacks = readFromFile(1)
   if not tPacks then
     io.stderr:write("Error while trying to read local package names")
     return
@@ -356,7 +388,7 @@ local function uninstallPackage(pack)
     print("Package does not exist")
     return
   end
-  local tFiles = readFromFile()
+  local tFiles = readFromFile(1)
   if not tFiles then
     io.stderr:write("Error while trying to read package names")
     return
@@ -382,7 +414,7 @@ end
 local function updatePackage(pack)
   if pack=="*" then
     print("Updating everything...")
-    local tFiles = readFromFile()
+    local tFiles = readFromFile(1)
     if not tFiles then
       io.stderr:write("Error while trying to read package names")
       return
