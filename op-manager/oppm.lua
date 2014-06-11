@@ -76,8 +76,8 @@ local function compare(a,b)
   return #a < #b
 end
 
-local function downloadFile(url,path)
-  if options.f then
+local function downloadFile(url,path,force)
+  if options.f or force then
     wget("-fq",url,path)
   else
     wget("-q",url,path)
@@ -85,15 +85,14 @@ local function downloadFile(url,path)
 end
 
 local function readFromFile(fNum)
-  local tPath = process.running()
   local path
   if fNum == 1 then
     path = "/etc/opdata.svd"
   elseif fNum == 2 then
     path = "/etc/oppm.cfg"
   end
-  if not fs.exists(fs.path(path)) then
-    fs.makeDirectory(fs.path(path))
+  if not fs.exists("/etc") then
+    fs.makeDirectory("/etc")
   end
   if not fs.exists(path) then
     return {-1}
@@ -109,8 +108,7 @@ local function readFromFile(fNum)
 end
 
 local function saveToFile(tPacks)
-  local tPath = process.running()
-  local file,msg = io.open(fs.path(shell.resolve(tPath)).."etc/opdata.svd","wb")
+  local file,msg = io.open("/etc/opdata.svd","wb")
   if not file then
     io.stderr:write("Error while trying to save package names: "..msg)
     return
@@ -351,14 +349,17 @@ local function installPackage(pack,path,update)
   tPacks[pack] = {}
   term.write("Installing Files...")
   for i,j in pairs(info.files) do
-    local lPath = fs.concat(path,j)
-    if not fs.exists(lPath) then
-      fs.makeDirectory(lPath)
-    end
     local nPath
-    if string.find(j,"^//",1,true) then
-      nPath = string.gsub(j,"^//","/")
+    if string.find(j,"^//") then
+      nPath = string.sub(j,2)
+      if not fs.exists(nPath) then
+        fs.makeDirectory(nPath)
+      end
     else
+      local lPath = fs.concat(path,j)
+      if not fs.exists(lPath) then
+        fs.makeDirectory(lPath)
+      end
       nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
     end
     local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
@@ -370,8 +371,8 @@ local function installPackage(pack,path,update)
     term.write("Done.\nInstalling Dependencies...")
     for i,j in pairs(info.dependencies) do
       local nPath
-      if string.find(j,"^//",1,true) then
-        nPath = string.gsub(j,"^//","/")
+      if string.find(j,"^//") then
+        nPath = string.sub(j,2)
       else
         nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
       end
