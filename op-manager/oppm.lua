@@ -5,7 +5,6 @@ Author: Vexatos
 local component = require("component")
 local event = require("event")
 local fs = require("filesystem")
-local process = require("process")
 local serial = require("serialization")
 local shell = require("shell")
 local term = require("term")
@@ -90,6 +89,10 @@ local function readFromFile(fNum)
     path = "/etc/opdata.svd"
   elseif fNum == 2 then
     path = "/etc/oppm.cfg"
+    if not fs.exists(path) then
+      local process = require("process")
+      path = fs.path(shell.resolve(process.running())).."etc/oppm.cfg"
+    end
   end
   if not fs.exists("/etc") then
     fs.makeDirectory("/etc")
@@ -151,10 +154,12 @@ local function listPackages(filter)
       end
     end
     local lRepos = readFromFile(2)
-    for _,j in pairs(lRepos.repos) do
-      for k in pairs(j) do
-        if not k.hidden then
-          table.insert(packages,k)
+    if lRepos then
+      for _,j in pairs(lRepos.repos) do
+        for k in pairs(j) do
+          if not k.hidden then
+            table.insert(packages,k)
+          end
         end
       end
     end
@@ -224,10 +229,12 @@ local function getInformation(pack)
     end
   end
   local lRepos = readFromFile(2)
-  for i,j in pairs(lRepos.repos) do
-    for k in pairs(j) do
-      if k==pack then
-        return j[k],i
+  if lRepos then
+    for i,j in pairs(lRepos.repos) do
+      for k in pairs(j) do
+        if k==pack then
+          return j[k],i
+        end
       end
     end
   end
@@ -351,10 +358,11 @@ local function installPackage(pack,path,update)
   for i,j in pairs(info.files) do
     local nPath
     if string.find(j,"^//") then
-      nPath = string.sub(j,2)
-      if not fs.exists(nPath) then
-        fs.makeDirectory(nPath)
+      local lPath = string.sub(j,2)
+      if not fs.exists(lPath) then
+        fs.makeDirectory(lPath)
       end
+      nPath = fs.concat(lPath,string.gsub(i,".+(/.-)$","%1"),nil)
     else
       local lPath = fs.concat(path,j)
       if not fs.exists(lPath) then
