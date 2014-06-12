@@ -5,6 +5,7 @@ Author: Vexatos
 local component = require("component")
 local event = require("event")
 local fs = require("filesystem")
+local process = require("process")
 local serial = require("serialization")
 local shell = require("shell")
 local term = require("term")
@@ -90,12 +91,12 @@ local function readFromFile(fNum)
   elseif fNum == 2 then
     path = "/etc/oppm.cfg"
     if not fs.exists(path) then
-      local process = require("process")
-      path = fs.path(shell.resolve(process.running())).."etc/oppm.cfg"
+      local tProcess = process.running()
+      path = fs.concat(fs.path(shell.resolve(tProcess)),"/etc/oppm.cfg")
     end
   end
-  if not fs.exists("/etc") then
-    fs.makeDirectory("/etc")
+  if not fs.exists(fs.path(path)) then
+    fs.makeDirectory(fs.path(path))
   end
   if not fs.exists(path) then
     return {-1}
