@@ -32,7 +32,7 @@ local function printUsage()
   print("'oppm info <package>' to get further information about a program package")
   print("'oppm install [-f] <package> [path]' to download a package to a directory on your system (or /usr by default)")
   print("'oppm update <package>' to update an already installed package")
-  print("'oppm update *' to update every already installed package")
+  print("'oppm update all' to update every already installed package")
   print("'oppm uninstall <package>' to remove a package from your system")
   print(" -f: Force creation of directories and overwriting of existing files.")
 end
@@ -434,7 +434,7 @@ local function uninstallPackage(pack)
 end
 
 local function updatePackage(pack)
-  if pack=="*" then
+  if pack=="all" then
     print("Updating everything...")
     local tFiles = readFromFile(1)
     if not tFiles then
