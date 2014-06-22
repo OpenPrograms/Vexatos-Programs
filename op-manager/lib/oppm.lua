@@ -60,9 +60,9 @@ end
 
 local function downloadFile(url,path,force)
   if force then
-    wget("-fq",url,path)
+    return wget("-fq",url,path)
   else
-    wget("-q",url,path)
+    return wget("-q",url,path)
   end
 end
 
@@ -308,8 +308,8 @@ local function installPack(pack,path,update,force)
       end
       nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
     end
-    local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
-    if success then
+    local success,response = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
+    if success and response then
       tPacks[pack][i] = nPath
     else
       fs.remove(nPath)
@@ -329,8 +329,8 @@ local function installPack(pack,path,update,force)
         nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
       end
       if string.lower(string.sub(i,1,4))=="http" then
-        local success = pcall(downloadFile,i,nPath)
-        if success then
+        local success,response = pcall(downloadFile,i,nPath)
+        if success and response then
           tPacks[pack][i] = nPath
         else
           fs.remove(nPath)
