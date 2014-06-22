@@ -311,6 +311,13 @@ local function installPack(pack,path,update,force)
     local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
     if success then
       tPacks[pack][i] = nPath
+    else
+      fs.remove(nPath)
+      for o,p in pairs(tPacks[pack]) do
+        fs.remove(p)
+        tPacks[pack][o]=nil
+      end
+      error("Error while installing files. Installation reverted")
     end
   end
   if info.dependencies then
@@ -325,6 +332,13 @@ local function installPack(pack,path,update,force)
         local success = pcall(downloadFile,i,nPath)
         if success then
           tPacks[pack][i] = nPath
+        else
+          fs.remove(nPath)
+          for o,p in pairs(tPacks[pack]) do
+            fs.remove(p)
+            tPacks[pack][o]=nil
+          end
+          error("Error while installing dependency files. Installation reverted")
         end
       else
         local depInfo = getFullInformation(string.lower(i))

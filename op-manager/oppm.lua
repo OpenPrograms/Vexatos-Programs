@@ -349,7 +349,7 @@ local function installPackage(pack,path,update)
   end
   if update then
     term.write("Removing old files...")
-    for i,j in pairs(tPacks[pack]) do
+    for _,j in pairs(tPacks[pack]) do
       fs.remove(j)
     end
     term.write("Done.\n")
@@ -374,6 +374,15 @@ local function installPackage(pack,path,update)
     local success = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
     if success then
       tPacks[pack][i] = nPath
+    else
+      term.write("Error while installing files. Reverting installation...")
+      fs.remove(nPath)
+      for o,p in pairs(tPacks[pack]) do
+        fs.remove(p)
+        tPacks[pack][o]=nil
+      end
+      print("Done.\nPlease contact the package author about this problem")
+      return
     end
   end
   if info.dependencies then
@@ -389,6 +398,15 @@ local function installPackage(pack,path,update)
         local success = pcall(downloadFile,i,nPath)
         if success then
           tPacks[pack][i] = nPath
+        else
+          term.write("Error while installing dependency files. Reverting installation...")
+          fs.remove(nPath)
+          for o,p in pairs(tPacks[pack]) do
+            fs.remove(p)
+            tPacks[pack][o]=nil
+          end
+          print("Done.\nPlease contact the package author about this problem")
+          return
         end
       else
         local depInfo = getInformation(string.lower(i))
