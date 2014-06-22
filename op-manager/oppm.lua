@@ -375,7 +375,7 @@ local function installPackage(pack,path,update)
     if success then
       tPacks[pack][i] = nPath
     else
-      term.write("Error while installing files. Reverting installation...")
+      term.write("Error while installing files for package '"..pack.."'. Reverting installation... ")
       fs.remove(nPath)
       for o,p in pairs(tPacks[pack]) do
         fs.remove(p)
@@ -399,7 +399,7 @@ local function installPackage(pack,path,update)
         if success then
           tPacks[pack][i] = nPath
         else
-          term.write("Error while installing dependency files. Reverting installation...")
+          term.write("Error while installing dependency package '"..i.."'. Reverting installation... ")
           fs.remove(nPath)
           for o,p in pairs(tPacks[pack]) do
             fs.remove(p)

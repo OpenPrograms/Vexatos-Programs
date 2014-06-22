@@ -317,7 +317,7 @@ local function installPack(pack,path,update,force)
         fs.remove(p)
         tPacks[pack][o]=nil
       end
-      error("Error while installing files. Installation reverted")
+      error("Error while installing files for package '"..i.."'. Installation reverted")
     end
   end
   if info.dependencies then
@@ -338,7 +338,7 @@ local function installPack(pack,path,update,force)
             fs.remove(p)
             tPacks[pack][o]=nil
           end
-          error("Error while installing dependency files. Installation reverted")
+          error("Error while installing dependency package '"..i.."'. Installation reverted")
         end
       else
         local depInfo = getFullInformation(string.lower(i))
