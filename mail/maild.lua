@@ -1,4 +1,4 @@
-local fs = require("filsystem")
+local fs = require("filesystem")
 local component = require("component")
 local process = require("process")
 
