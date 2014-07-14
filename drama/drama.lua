@@ -1,3 +1,6 @@
+--[[ asie's Drama Generator inside OC
+Author: Vexatos
+]]
 local term = require("term")
 local component = require("component")
 
