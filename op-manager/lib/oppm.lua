@@ -130,7 +130,7 @@ function oppm.listPackages(filter,installed)
       end
     end
     local lRepos = readFromFile(2)
-    if lRepos then
+    if lRepos and lRepos.repos then
       for _,j in pairs(lRepos.repos) do
         for k in pairs(j) do
           if not k.hidden then
