@@ -353,17 +353,6 @@ local function installPackage(pack,path,update)
       fs.remove(j)
     end
     term.write("Done.\n")
-    if info.dependencies then
-      term.write("Removing dependency files...")
-      for i in pairs(info.dependencies) do
-        if tPacks[i] then
-          for _,j in pairs(tPacks[i]) do
-            fs.remove(j)
-          end
-        end
-      end
-      term.write("Done.\n")
-    end
   end
   tPacks[pack] = {}
   term.write("Installing Files...")
@@ -424,7 +413,7 @@ local function installPackage(pack,path,update)
         if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
-        installPackage(string.lower(i),fs.concat(path,j))
+        installPackage(string.lower(i),fs.concat(path,j),update)
       end
     end
   end
