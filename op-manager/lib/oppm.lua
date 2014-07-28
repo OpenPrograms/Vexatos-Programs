@@ -225,7 +225,7 @@ function oppm.getInformation(pack)
   return tInfo
 end
 
-local tPacks
+local tPacks = readFromFile(1)
 
 local function installPack(pack,path,update,force)
   update = update or false
@@ -240,7 +240,6 @@ local function installPack(pack,path,update,force)
   end
   pack = string.lower(pack)
 
-  tPacks = readFromFile(1)
   if not tPacks then
     error("error while trying to read local package names")
   elseif tPacks[1]==-1 then
@@ -254,14 +253,18 @@ local function installPack(pack,path,update,force)
   if update then
     path = nil
     for i,j in pairs(info.files) do
-      for k,v in pairs(tPacks[pack]) do
-        if k==i then
-          path = string.gsub(fs.path(v),j.."/?$","/")
+      if tPacks[pack] then
+        for k,v in pairs(tPacks[pack]) do
+          if k==i then
+            path = string.gsub(fs.path(v),j.."/?$","/")
+            break
+          end
+        end
+        if path then
           break
         end
-      end
-      if path then
-        break
+      else
+        error("error while checking update path")
       end
     end
     path = shell.resolve(string.gsub(path,"^/?","/"),nil)
