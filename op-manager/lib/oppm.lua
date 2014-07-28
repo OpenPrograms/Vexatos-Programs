@@ -92,12 +92,12 @@ local function readFromFile(fNum)
   return serial.unserialize(sPacks) or {-1}
 end
 
-local function saveToFile(tPacks)
+local function saveToFile(packs)
   local file,msg = io.open("/etc/opdata.svd","wb")
   if not file then
     error("error while trying to save package names: "..msg)
   end
-  local sPacks = serial.serialize(tPacks)
+  local sPacks = serial.serialize(packs)
   file:write(sPacks)
   file:close()
 end
@@ -141,8 +141,8 @@ function oppm.listPackages(filter,installed)
     end
   else
     local lPacks = {}
-    local tPacks = readFromFile(1)
-    for i in pairs(tPacks) do
+    local packs = readFromFile(1)
+    for i in pairs(packs) do
       table.insert(lPacks,i)
     end
     packages = lPacks
@@ -225,6 +225,8 @@ function oppm.getInformation(pack)
   return tInfo
 end
 
+local tPacks
+
 local function installPack(pack,path,update,force)
   update = update or false
   if not pack then
@@ -238,7 +240,7 @@ local function installPack(pack,path,update,force)
   end
   pack = string.lower(pack)
 
-  local tPacks = readFromFile(1)
+  tPacks = readFromFile(1)
   if not tPacks then
     error("error while trying to read local package names")
   elseif tPacks[1]==-1 then
