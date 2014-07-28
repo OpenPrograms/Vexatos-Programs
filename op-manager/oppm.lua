@@ -276,6 +276,8 @@ local function provideInfo(pack)
   end
 end
 
+local tPacks
+
 local function installPackage(pack,path,update)
   update = update or false
   if not pack then
@@ -292,7 +294,7 @@ local function installPackage(pack,path,update)
   end
   pack = string.lower(pack)
 
-  local tPacks = readFromFile(1)
+  tPacks = readFromFile(1)
   if not tPacks then
     io.stderr:write("Error while trying to read local package names")
     return
