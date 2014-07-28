@@ -291,15 +291,6 @@ local function installPack(pack,path,update,force)
     for i,j in pairs(tPacks[pack]) do
       fs.remove(j)
     end
-    if info.dependencies then
-      for i in pairs(info.dependencies) do
-        if tPacks[i] then
-          for _,j in pairs(tPacks[i]) do
-            fs.remove(j)
-          end
-        end
-      end
-    end
   end
   tPacks[pack] = {}
   for i,j in pairs(info.files) do
@@ -352,7 +343,7 @@ local function installPack(pack,path,update,force)
       else
         local depInfo = getFullInformation(string.lower(i))
         if depInfo then
-          installPack(string.lower(i),fs.concat(path,j))
+          installPack(string.lower(i),fs.concat(path,j),update)
         end
       end
     end
