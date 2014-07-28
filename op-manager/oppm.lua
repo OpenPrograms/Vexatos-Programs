@@ -111,13 +111,13 @@ local function readFromFile(fNum)
   return serial.unserialize(sPacks) or {-1}
 end
 
-local function saveToFile(tPacks)
+local function saveToFile(packs)
   local file,msg = io.open("/etc/opdata.svd","wb")
   if not file then
     io.stderr:write("Error while trying to save package names: "..msg)
     return
   end
-  local sPacks = serial.serialize(tPacks)
+  local sPacks = serial.serialize(packs)
   file:write(sPacks)
   file:close()
 end
@@ -166,8 +166,8 @@ local function listPackages(filter)
     end
   else
     local lPacks = {}
-    local tPacks = readFromFile(1)
-    for i in pairs(tPacks) do
+    local packs = readFromFile(1)
+    for i in pairs(packs) do
       table.insert(lPacks,i)
     end
     packages = lPacks
@@ -185,8 +185,8 @@ local function listPackages(filter)
   return packages
 end
 
-local function printPackages(tPacks)
-  if tPacks==nil or not tPacks[1] then
+local function printPackages(packs)
+  if packs==nil or not packs[1] then
     print("No package matching specified filter found.")
     return
   end
@@ -194,7 +194,7 @@ local function printPackages(tPacks)
   local xRes,yRes = gpu.getResolution()
   print("--OpenPrograms Package list--")
   local xCur,yCur = term.getCursor()
-  for _,j in ipairs(tPacks) do
+  for _,j in ipairs(packs) do
     term.write(j.."\n")
     yCur = yCur+1
     if yCur>yRes-1 then
@@ -477,8 +477,8 @@ local function updatePackage(pack)
 end
 
 if args[1] == "list" then
-  local tPacks = listPackages(args[2])
-  printPackages(tPacks)
+  local packs = listPackages(args[2])
+  printPackages(packs)
 elseif args[1] == "info" then
   provideInfo(args[2])
 elseif args[1] == "install" then
