@@ -291,6 +291,15 @@ local function installPack(pack,path,update,force)
     for i,j in pairs(tPacks[pack]) do
       fs.remove(j)
     end
+    if info.dependencies then
+      for i in pairs(info.dependencies) do
+        if tPacks[i] then
+          for _,j in pairs(tPacks[i]) do
+            fs.remove(j)
+          end
+        end
+      end
+    end
   end
   tPacks[pack] = {}
   for i,j in pairs(info.files) do
