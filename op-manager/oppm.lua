@@ -276,7 +276,7 @@ local function provideInfo(pack)
   end
 end
 
-local tPacks
+local tPacks = readFromFile(1)
 
 local function installPackage(pack,path,update)
   update = update or false
@@ -294,7 +294,6 @@ local function installPackage(pack,path,update)
   end
   pack = string.lower(pack)
 
-  tPacks = readFromFile(1)
   if not tPacks then
     io.stderr:write("Error while trying to read local package names")
     return
@@ -311,14 +310,19 @@ local function installPackage(pack,path,update)
     print("Updating package "..pack)
     path = nil
     for i,j in pairs(info.files) do
-      for k,v in pairs(tPacks[pack]) do
-        if k==i then
-          path = string.gsub(fs.path(v),j.."/?$","/")
+      if tPacks[pack] then
+        for k,v in pairs(tPacks[pack]) do
+          if k==i then
+            path = string.gsub(fs.path(v),j.."/?$","/")
+            break
+          end
+        end
+        if path then
           break
         end
-      end
-      if path then
-        break
+      else
+        io.stderr:write("error while checking update path")
+        return
       end
     end
     path = shell.resolve(string.gsub(path,"^/?","/"),nil)
