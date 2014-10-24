@@ -309,22 +309,22 @@ local function installPackage(pack,path,update)
   if update then
     print("Updating package "..pack)
     path = nil
-	if not tPacks[pack] then
-		io.stderr:write("error while checking update path")
-        return
-	end
+    if not tPacks[pack] then
+      io.stderr:write("error while checking update path")
+      return
+    end
     for i,j in pairs(info.files) do
-		if not string.find(j,"^//") then
-			for k,v in pairs(tPacks[pack]) do
-				if k==i then
-					path = string.gsub(fs.path(v),j.."/?$","/")
-					break
-				end
-			end
-			if path then
-				break
-			end
-		end
+      if not string.find(j,"^//") then
+        for k,v in pairs(tPacks[pack]) do
+          if k==i then
+            path = string.gsub(fs.path(v),j.."/?$","/")
+            break
+          end
+        end
+        if path then
+          break
+        end
+      end
     end
     path = shell.resolve(string.gsub(path,"^/?","/"),nil)
   end
