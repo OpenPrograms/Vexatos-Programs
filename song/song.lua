@@ -10,10 +10,10 @@
 local n = require("note")
 local song = {}
 function song.play(notes,shortest)
+  if not shortest then shortest = 0.125 end
   if not type(shortest)=="number" then
     shortest = 0.125
   end
-  if not shortest then shortest = 0.125 end
   local typo = type(notes)
   if typo == "table" then
     local duration
