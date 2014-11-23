@@ -50,7 +50,7 @@ function song.play(notes,shortest)
       end
     end
   else
-    error("Wrong input given, song.play requires a table as first parameter",2)
+    error("Wrong input given, song.play requires a table or a string as first parameter",2)
   end
 end
 
