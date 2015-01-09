@@ -14,14 +14,18 @@ local wget = loadfile("/bin/wget.lua")
 
 local gpu = component.gpu
 
-if not component.isAvailable("internet") then
-  io.stderr:write("This program requires an internet card to run.")
-  return
-end
-local internet = require("internet")
+local internet
 
 local args, options = shell.parse(...)
 
+local function getInternet()
+  if not component.isAvailable("internet") then
+    io.stderr:write("This program requires an internet card to run.")
+    return false
+  end
+  internet = require("internet")
+  return true
+end
 
 local function printUsage()
   print("OpenPrograms Package Manager, use this to browse through and download OpenPrograms programs easily")
@@ -430,11 +434,6 @@ local function installPackage(pack,path,update)
 end
 
 local function uninstallPackage(pack)
-  local info,repo = getInformation(pack)
-  if not info then
-    print("Package does not exist")
-    return
-  end
   local tFiles = readFromFile(1)
   if not tFiles then
     io.stderr:write("Error while trying to read package names")
@@ -444,7 +443,8 @@ local function uninstallPackage(pack)
   end
   if not tFiles[pack] then
       print("Package has not been installed.")
-      print("If it has, you have to remove it manually.")
+      print("If it has, the package could not be identified.")
+      print("In this case you have to remove it manually.")
       return
   end
   term.write("Removing package files...")
@@ -482,13 +482,17 @@ local function updatePackage(pack)
 end
 
 if args[1] == "list" then
+  if not getInternet() return end
   local packs = listPackages(args[2])
   printPackages(packs)
 elseif args[1] == "info" then
+  if not getInternet() return end
   provideInfo(args[2])
 elseif args[1] == "install" then
+  if not getInternet() return end
   installPackage(args[2],args[3],false)
 elseif args[1] == "update" then
+  if not getInternet() return end
   updatePackage(args[2])
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
