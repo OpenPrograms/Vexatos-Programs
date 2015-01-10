@@ -482,17 +482,17 @@ local function updatePackage(pack)
 end
 
 if args[1] == "list" then
-  if not getInternet() return end
+  if not getInternet() then return end
   local packs = listPackages(args[2])
   printPackages(packs)
 elseif args[1] == "info" then
-  if not getInternet() return end
+  if not getInternet() then return end
   provideInfo(args[2])
 elseif args[1] == "install" then
-  if not getInternet() return end
+  if not getInternet() then return end
   installPackage(args[2],args[3],false)
 elseif args[1] == "update" then
-  if not getInternet() return end
+  if not getInternet() then return end
   updatePackage(args[2])
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
