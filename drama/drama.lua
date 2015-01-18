@@ -16,7 +16,7 @@ while true do
   term.clear()
   term.setCursor(1,1)
  
-  local response = internet.request("http://asie.pl/drama.php?plain")
+  local response = internet.request("http://asie.pl/drama.php?plain&2")
   local drama = response()
   term.write(drama)
   os.sleep(timeOut)
