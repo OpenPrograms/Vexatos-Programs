@@ -48,26 +48,26 @@ end
 
 function song.play(notes, shortest, multi)
   if not shortest then shortest = 0.125 end
-  if not type(shortest)=="number" then
+  if type(shortest)~="number" then
     shortest = 0.125
   end
   if shortest < 0.05 then
     error("Error: Shortest note must not be smaller than 0.05", 2)
   end
   multi = multi or false
-  if not type(multi)=="boolean" then
+  if type(multi)~="boolean" then
     multi = false
   end
   if not multi then
     local tNotes = notes
-    if(type(tNotes) == "string") then
+    if type(tNotes) == "string" then
         local tB = {}
         for j in string.gmatch(notes,"%S+") do
           table.insert(tB, j)
         end
         tNotes = tB
     end
-    if not type(tNotes) == "table" then
+    if type(tNotes) ~= "table" then
       error("Wrong input given, song.play requires a table or a string as first parameter", 2)
     end
     local noteMap = {}
@@ -94,7 +94,7 @@ function song.play(notes, shortest, multi)
       if type(j[1]) == "number" then
         os.sleep(j[2])
       else
-        n.play(j[1],j[2])
+        n.play(j[1], j[2])
       end
     end
   else
