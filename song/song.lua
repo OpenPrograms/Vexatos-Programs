@@ -51,17 +51,30 @@ function song.play(notes, shortest, multi)
   if not type(shortest)=="number" then
     shortest = 0.125
   end
+  if shortest < 0.05 then
+    error("Error: Shortest note must not be smaller than 0.05", 2)
+  end
   multi = multi or false
   if not type(multi)=="boolean" then
     multi = false
   end
   if not multi then
-    local typo = type(notes)
-    if typo == "table" then
+    local tNotes = notes
+    if(type(tNotes) == "string") then
+        local tB = {}
+        for j in string.gmatch(notes,"%S+") do
+          table.insert(tB, j)
+        end
+        tNotes = tB
+    end
+    if not type(tNotes) == "table" then
+      error("Wrong input given, song.play requires a table or a string as first parameter", 2)
+    end
+    local noteMap = {}
+    do
       local duration
-      for i,j in ipairs(notes) do
+      for i,j in ipairs(tNotes) do
         if string.find(j,"P") then
-          os.sleep(shortest*tonumber(string.match(j,"P_(%d+)")))
           duration = 0
         elseif string.find(j,"%-") then
           duration = 2
@@ -71,28 +84,18 @@ function song.play(notes, shortest, multi)
           duration = 1
         end
         if duration ~= 0 then
-          n.play(string.match(j,"(%a.?%d)_?%d*"),shortest*duration)
-        end
-      end
-    elseif typo == "string" then
-      local duration
-      for j in string.gmatch(notes,"%S+") do
-        if string.find(j,"P") then
-          os.sleep(shortest*tonumber(string.match(j,"P_(%d+)")))
-          duration = 0
-        elseif string.find(j,"%-") then
-          duration = 2
-        elseif string.find(j,"_") then
-          duration = tonumber(string.match(j,".*_(%d+)"))
+          table.insert(noteMap, i, {string.match(j,"(%a.?%d)_?%d*"),shortest*duration})
         else
-          duration = 1
-        end
-        if duration ~= 0 then
-          n.play(string.match(j,"(%a.?%d)_?%d*"),shortest*duration)
+          table.insert(noteMap, i, {-1, shortest*tonumber(string.match(j,"P_(%d+)")})
         end
       end
-    else
-      error("Wrong input given, song.play requires a table or a string as first parameter",2)
+    end
+    for i,j in ipairs(noteMap) do
+      if type(j[1]) == "number" then
+        os.sleep(j[2])
+      else
+        n.play(j[1],j[2])
+      end
     end
   else
     --beep card mode
@@ -103,6 +106,9 @@ function song.play(notes, shortest, multi)
     local beep = component.beep
     local freqMap = {}
     
+    if not type(notes) == "table" then
+      error("Wrong input given, song.play in multi mode requires a table as first parameter", 2)
+    end
     --parsing start
     
     for k,v in ipairs(notes) do
