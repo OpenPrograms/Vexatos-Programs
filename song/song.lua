@@ -86,7 +86,7 @@ function song.play(notes, shortest, multi)
         if duration ~= 0 then
           table.insert(noteMap, i, {string.match(j,"(%a.?%d)_?%d*"),shortest*duration})
         else
-          table.insert(noteMap, i, {-1, shortest*tonumber(string.match(j,"P_(%d+)")}))
+          table.insert(noteMap, i, {-1, shortest*tonumber(string.match(j,"P_(%d+)"))})
         end
       end
     end
