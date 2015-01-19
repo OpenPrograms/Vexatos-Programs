@@ -154,7 +154,7 @@ function song.play(notes, shortest, multi)
         end
       end
       beep.beep(fMap)
-      if k < #freqMap - 1 then
+      if k < #freqMap then
         os.sleep((freqMap[k+1][1] - v[1]) * shortest)
       end
     end
