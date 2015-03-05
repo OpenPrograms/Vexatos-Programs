@@ -49,7 +49,7 @@ end
 local function offsetNumber(n, d)
   local num = tostring(math.floor(n))
   if d <= #num then return num end
-  return string.rep(" ", d - #num)..num
+  return string.rep(" ", d - #num) .. num
 end
 
 if not silent then
@@ -70,7 +70,7 @@ while true do
     term.clearLine()
     term.write(("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, 3).."%\n", false)
     term.clearLine()
-    term.write(("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #maxEnergy).."RF/t\n", false)
+    term.write(("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #maxEnergy).."RF/t", false)
   end
   
   if stored/maxEnergy <= turnOn and not reactor.isActive() then
