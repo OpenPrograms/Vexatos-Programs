@@ -68,9 +68,9 @@ while true do
     term.clearLine()
     term.write("Currently stored:   " .. offsetNumber(fancyNumber(stored), #maxEnergy) .. "RF\n", false)
     term.clearLine()
-    term.write("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, 3).."%\n", false)
+    term.write("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, 3) .. "%\n", false)
     term.clearLine()
-    term.write("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #maxEnergy).."RF/t", false)
+    term.write("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #maxEnergy) .. "RF/t", false)
   end
   
   if stored/maxEnergy <= turnOn and not reactor.isActive() then
