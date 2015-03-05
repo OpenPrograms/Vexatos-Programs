@@ -66,7 +66,7 @@ while true do
   if not silent then
     term.setCursor(1, y)
     term.clearLine()
-    term.write("Currently stored:    " .. offsetNumber(fancyNumber(stored), #maxEnergy) .. "RF\n", false)
+    term.write("Currently stored:   " .. offsetNumber(fancyNumber(stored), #maxEnergy) .. "RF\n", false)
     term.clearLine()
     term.write("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, 3).."%\n", false)
     term.clearLine()
