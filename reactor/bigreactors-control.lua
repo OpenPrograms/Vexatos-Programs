@@ -125,7 +125,7 @@ while true do
     term.clearLine()
     term.write("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF\n", false)
     term.clearLine()
-    term.write("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%\n", false)
+    term.write("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. " %\n", false)
     term.clearLine()
     term.write("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t", false)
   end
