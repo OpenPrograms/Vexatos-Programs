@@ -47,6 +47,15 @@ do
   end
 end
 
+if turnOn < 0 or turnOn > 1 or turnOff <0 or turnOff > 1 then
+  if silent then
+    error("turnOn and turnOff both need to be between 0 and 1")
+  else
+    io.stderr:write("turnOn and turnOff both need to be between 0 and 1")
+    return
+  end
+end
+
 --Check whether there is a Reactor Computer Port to access
 if not component.isAvailable("br_reactor") then
   if silent then
@@ -66,12 +75,12 @@ local function fancyNumber(n)
 end
 
 --Displays numbers with a special offset
-local function offsetNumber(num, d)
+local function offset(num, d)
   if type(num) ~= "string" then
     if type(num) == "number" then
-      return offsetNumber(tostring(math.floor(num)), d)
+      return offset(tostring(math.floor(num)), d)
     end
-    return offsetNumber(tostring(num), d)
+    return offset(tostring(num), d)
   end
   if d <= #num then return num end
   return string.rep(" ", d - #num) .. num
@@ -84,21 +93,12 @@ end
 --Get the current y position of the cursor for the RF display
 local _,y = term.getCursor()
 
+--The interface offset
+local offs = #tostring(maxEnergymaxEnergy)
+
 while true do
   --Get the current amount of energy stored
   local stored = reactor.getEnergyStored()
-  --Write the currently stored energy, the percentage value and the current production rate to screen
-  if not silent then
-    term.setCursor(1, y)
-    term.clearLine()
-    term.write("Currently stored:   " .. offsetNumber(fancyNumber(stored), #tostring(maxEnergy)) .. " RF")
-    --term.setCursor(1, y + 1)
-    term.clearLine()
-    term.write("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, #tostring(maxEnergy)) .. "%")
-    --term.setCursor(1, y + 2)
-    term.clearLine()
-    term.write("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #tostring(maxEnergy)) .. " RF/t")
-  end
   
   if stored/maxEnergy <= turnOn and not reactor.getActive() then
     --The reactor is off, but the power is below the turnOn percentage
@@ -106,6 +106,27 @@ while true do
   elseif stored/maxEnergy >= turnOff and reactor.getActive() then
     --The reactor is on, but the power is above the turnOff percentage
     reactor.setActive(false)
+  end
+
+  --Write the currently stored energy, the percentage value and the current production rate to screen
+  if not silent then
+    term.setCursor(1, y)
+    term.clearLine()
+    local state = reactor.getActive()
+    if state then
+      state = "On"
+    else
+      state = "Off"
+    end
+    term.write("Reactor state:      " .. offset(state, offs) .. "\n")
+    term.clearLine()
+    term.write("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF\n")
+    --term.setCursor(1, y + 1)
+    term.clearLine()
+    term.write("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%\n")
+    --term.setCursor(1, y + 2)
+    term.clearLine()
+    term.write("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t")
   end
 
   --Check if the program has been terminated
