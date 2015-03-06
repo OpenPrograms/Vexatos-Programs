@@ -134,7 +134,7 @@ while true do
   if keyboard.isKeyDown(keyboard.keys.w) and keyboard.isControlDown() then
     --Shut down the reactor, place cursor in a new line and exit
     if not silent then
-      term.write("Reactor shut down.\n")
+      term.write("\nReactor shut down.\n")
     end
     reactor.setActive(false)
     os.exit()
