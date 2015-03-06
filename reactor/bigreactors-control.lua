@@ -66,8 +66,13 @@ local function fancyNumber(n)
 end
 
 --Displays numbers with a special offset
-local function offsetNumber(n, d)
-  local num = tostring(math.floor(n))
+local function offsetNumber(num, d)
+  if type(num) ~= "string" then
+    if type(num) == "number" then
+      return offsetNumber(tostring(math.floor(num)), d)
+    end
+    return offsetNumber(tostring(num), d)
+  end
   if d <= #num then return num end
   return string.rep(" ", d - #num) .. num
 end
