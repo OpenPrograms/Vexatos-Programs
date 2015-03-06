@@ -1,6 +1,9 @@
 --[[
 Simple BigReactors Reactor Control program
-You can run it with the option -s to make it not print anything to the screen; will automatically enable this option if there is no screen and GPU available
+Usage:
+  bigreactors-control [-s] [turnOn turnOff]
+  -s makes the program not print anything to the screen; will automatically enable this option if there is no screen and GPU available
+  Optional arguments are turnOn and turnOff, allowing you to specify when to turn the reactor on and when to turn it off. Default values are 0.1 and 0.9
 Author: Vexatos
 ]]
 
@@ -22,23 +25,40 @@ local component = require("component")
 local keyboard = require("keyboard")
 local term = require("term")
 
+--This is true if there is no available screen or the option -s is used
+local silent = not term.isAvailable()
+
+do
+  local shell = require("shell")
+  local args, options = shell.parse(...)
+  if options.s then silent = true end
+  if #args > 0 then
+    if #args < 2 then
+      if silent then
+        error("invalid number of arguments. needs to be 0 or 2")
+      else
+        io.stderr:write("invalid number of arguments, needs to be 0 or 2")
+        return
+      end
+    else
+      turnOn = args[1]
+      turnOff = args[2]
+    end
+  end
+end
+
 --Check whether there is a Reactor Computer Port to access
 if not component.isAvailable("br_reactor") then
-  io.stderr:write("This program requires a connected Reactor Computer Port to run.")
-  return
+  if silent then
+    error("no connected Reactor Computer Port found.")
+  else
+    io.stderr:write("This program requires a connected Reactor Computer Port to run.")
+    return
+  end
 end
 
 --Getting the primary port
 local reactor = component.br_reactor
-
---This is true if there is no available screen or the option -s is used
-local silent = not term.isAvailable()
-
-if not silent then
-  local shell = require("shell")
-  local _, options = shell.parse(...)
-  if options.s then silent = true end
-end
 
 --Displays long numbers with commas
 local function fancyNumber(n)
