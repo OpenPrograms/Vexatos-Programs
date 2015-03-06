@@ -87,6 +87,9 @@ local function offset(num, d)
 end
 
 if not silent then
+  component.gpu.setResolution(component.gpu.maxResolution())
+  term.clear()
+
   print("Press Ctrl+W to stop.")
 end
 
@@ -111,8 +114,6 @@ while true do
   --Write the reactor state, the currently stored energy, the percentage value and the current production rate to screen
   if not silent then
     term.setCursor(1, y)
-    --local _,ny = term.getCursor()
-    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     term.clearLine()
     local state = reactor.getActive()
     if state then
@@ -120,28 +121,20 @@ while true do
     else
       state = "Off"
     end
-    print("Reactor state:      " .. offset(state, offs))
-    --_,ny = term.getCursor()
-    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
+    term.write("Reactor state:      " .. offset(state, offs) .. "\n", false)
     term.clearLine()
-    print("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF")
-    --_,ny = term.getCursor()
-    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
-    --term.setCursor(1, y + 1)
+    term.write("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF\n", false)
     term.clearLine()
-    print("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%")
-    --_,ny = term.getCursor()
-    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
-    --term.setCursor(1, y + 2)
+    term.write("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%\n", false)
     term.clearLine()
-    print("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t")
+    term.write("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t", false)
   end
 
   --Check if the program has been terminated
   if keyboard.isKeyDown(keyboard.keys.w) and keyboard.isControlDown() then
     --Shut down the reactor, place cursor in a new line and exit
     if not silent then
-      term.write("\nReactor shut down.\n")
+      term.write("Reactor shut down.\n")
     end
     reactor.setActive(false)
     os.exit()
