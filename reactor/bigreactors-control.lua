@@ -47,7 +47,7 @@ do
   end
 end
 
-if turnOn < 0 or turnOn > 1 or turnOff <0 or turnOff > 1 then
+if turnOn < 0 or turnOn > 1 or turnOff < 0 or turnOff > 1 then
   if silent then
     error("turnOn and turnOff both need to be between 0 and 1")
   else
@@ -94,7 +94,7 @@ end
 local _,y = term.getCursor()
 
 --The interface offset
-local offs = #tostring(maxEnergymaxEnergy)
+local offs = #tostring(maxEnergy) + 5
 
 while true do
   --Get the current amount of energy stored
@@ -108,9 +108,11 @@ while true do
     reactor.setActive(false)
   end
 
-  --Write the currently stored energy, the percentage value and the current production rate to screen
+  --Write the reactor state, the currently stored energy, the percentage value and the current production rate to screen
   if not silent then
     term.setCursor(1, y)
+    local _,ny = term.getCursor()
+    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     term.clearLine()
     local state = reactor.getActive()
     if state then
@@ -119,11 +121,17 @@ while true do
       state = "Off"
     end
     term.write("Reactor state:      " .. offset(state, offs) .. "\n")
+    _,ny = term.getCursor()
+    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     term.clearLine()
     term.write("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF\n")
+    _,ny = term.getCursor()
+    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     --term.setCursor(1, y + 1)
     term.clearLine()
     term.write("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%\n")
+    _,ny = term.getCursor()
+    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     --term.setCursor(1, y + 2)
     term.clearLine()
     term.write("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t")
