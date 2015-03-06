@@ -41,8 +41,8 @@ do
         return
       end
     else
-      turnOn = args[1]
-      turnOff = args[2]
+      turnOn = tonumber(args[1])
+      turnOff = tonumber(args[2])
     end
   end
 end
@@ -91,11 +91,13 @@ while true do
   if not silent then
     term.setCursor(1, y)
     term.clearLine()
-    term.write("Currently stored:   " .. offsetNumber(fancyNumber(stored), #tostring(maxEnergy)) .. "RF\n", false)
+    term.write("Currently stored:   " .. offsetNumber(fancyNumber(stored), #tostring(maxEnergy)) .. " RF")
+    --term.setCursor(1, y + 1)
     term.clearLine()
-    term.write("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, 3) .. "%\n", false)
+    term.write("Stored percentage:  " .. offsetNumber(stored / maxEnergy * 100, #tostring(maxEnergy)) .. "%")
+    --term.setCursor(1, y + 2)
     term.clearLine()
-    term.write("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #tostring(maxEnergy)) .. "RF/t", false)
+    term.write("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #tostring(maxEnergy)) .. " RF/t")
   end
   
   if stored/maxEnergy <= turnOn and not reactor.getActive() then
