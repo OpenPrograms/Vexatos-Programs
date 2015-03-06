@@ -111,8 +111,8 @@ while true do
   --Write the reactor state, the currently stored energy, the percentage value and the current production rate to screen
   if not silent then
     term.setCursor(1, y)
-    local _,ny = term.getCursor()
-    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
+    --local _,ny = term.getCursor()
+    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     term.clearLine()
     local state = reactor.getActive()
     if state then
@@ -120,21 +120,21 @@ while true do
     else
       state = "Off"
     end
-    term.write("Reactor state:      " .. offset(state, offs) .. "\n")
-    _,ny = term.getCursor()
-    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
+    print("Reactor state:      " .. offset(state, offs))
+    --_,ny = term.getCursor()
+    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     term.clearLine()
-    term.write("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF\n")
-    _,ny = term.getCursor()
-    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
+    print("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF")
+    --_,ny = term.getCursor()
+    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     --term.setCursor(1, y + 1)
     term.clearLine()
-    term.write("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%\n")
-    _,ny = term.getCursor()
-    term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
+    print("Stored percentage:  " .. offset(stored / maxEnergy * 100, offs) .. "%")
+    --_,ny = term.getCursor()
+    --term.write("Debug: "..tostring(y).." vs "..tostring(ny).."\n")
     --term.setCursor(1, y + 2)
     term.clearLine()
-    term.write("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t")
+    print("Current Production: " .. offset(reactor.getEnergyProducedLastTick(), offs) .. " RF/t")
   end
 
   --Check if the program has been terminated
