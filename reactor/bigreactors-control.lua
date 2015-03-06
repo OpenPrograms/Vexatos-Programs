@@ -93,10 +93,10 @@ while true do
     term.write("Current Production: " .. offsetNumber(reactor.getEnergyProducedLastTick(), #tostring(maxEnergy)) .. "RF/t", false)
   end
   
-  if stored/maxEnergy <= turnOn and not reactor.isActive() then
+  if stored/maxEnergy <= turnOn and not reactor.getActive() then
     --The reactor is off, but the power is below the turnOn percentage
     reactor.setActive(true)
-  elseif stored/maxEnergy >= turnOff and reactor.isActive() then
+  elseif stored/maxEnergy >= turnOff and reactor.getActive() then
     --The reactor is on, but the power is above the turnOff percentage
     reactor.setActive(false)
   end
