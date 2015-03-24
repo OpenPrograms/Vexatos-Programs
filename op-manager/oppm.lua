@@ -220,9 +220,9 @@ local function parseFolders(pack, repo, info)
 
   local function getFolderTable(repo, namePath, branch)
     local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
-    if not success or filestring:find('"message\": "Not Found"') then
+    if not success or filestring:find('"message": "Not Found"') then
       io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
-      if filestring:find("\"message\": \"Not Found\"") then
+      if filestring:find('"message": "Not Found"') then
         io.stderr:write("Folder "..namePath.." does not exist.\n")
       else
         io.stderr:write(filestring.."\n")
