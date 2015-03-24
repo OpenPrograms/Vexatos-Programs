@@ -84,6 +84,9 @@ local function downloadFile(url,path,force)
   if options.f or force then
     return wget("-fq",url,path)
   else
+    if fs.exists(path) then
+      error("file already exists and option -f is not enabled")
+    end
     return wget("-q",url,path)
   end
 end
@@ -386,7 +389,8 @@ local function installPackage(pack,path,update)
     if success and response then
       tPacks[pack][i] = nPath
     else
-      term.write("Error while installing files for package '"..pack.."'. Reverting installation... ")
+      response = response or ""
+      term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
       fs.remove(nPath)
       for o,p in pairs(tPacks[pack]) do
         fs.remove(p)
@@ -410,7 +414,8 @@ local function installPackage(pack,path,update)
         if success and response then
           tPacks[pack][i] = nPath
         else
-          term.write("Error while installing dependency package '"..i.."'. Reverting installation... ")
+          response = response or ""
+          term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
           fs.remove(nPath)
           for o,p in pairs(tPacks[pack]) do
             fs.remove(p)
