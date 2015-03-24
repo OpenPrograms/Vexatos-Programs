@@ -239,12 +239,12 @@ local function parseFolders(pack, repo, info)
     end
     file:write(filestring)
     file:write("\n")
-    file:write(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] ="))
+    file:write(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] = "))
     file:close()
     print("Debug print saved to /oppm-debugprint2.lua")
     
     --Debug
-    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="), nil)
+    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] = "), nil)
   end
 
   local function unserializeFiles(files, repo, namePath, branch, relPath)
