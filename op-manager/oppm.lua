@@ -216,6 +216,52 @@ local function printPackages(packs)
   end
 end
 
+local function parseFolders(pack, repo, info)
+
+  local function getFolderTable(repo, namePath, branch)
+    local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
+    if not success or filestring:find("\"message\": \"Not Found\"") then
+      io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
+      io.stderr:write("Please contact the author of that package.\n")
+      return nil
+    end
+    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] =")))
+  end
+
+  local function unserializeFiles(files, repo, namePath, branch, relPath)
+    if not files then return nil end
+    local tFiles = {}
+    for _,v in pairs(files) do
+      if v["type"] == "file" then
+        local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..repo.."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
+        tFiles[newPath] = fs.concat(relPath, newPath:gsub(branch.."/(.+)$","%1"), nil)
+      elseif v["type"] == "dir" then
+        local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["path"], branch), repo, branch, fs.concat(relPath, v["path"])
+        for p,q in pairs(newFiles) do
+          tFiles[p] = q
+        end
+      end
+    end
+    return tFiles
+  end
+
+  local newInfo = info
+  for i,j in pairs(info.files) do
+    if string.find(j,"^:")  then
+      local branch =  string.gsub(i,"^(.-)/.+","%1"):gsub("/?$",""):gsub("^/?","")
+      local namePath = string.gsub(i,".-(/.+)$","%1"):gsub("/?$",""):gsub("^/?","")
+
+      local files = unserializeFiles(getFolderTable(repo, namePath, branch), repo, namePath, branch, j)
+      if not files then return nil end
+      for p,q in pairs(newFiles) do
+        newInfo.files[p] = q
+      end
+      newInfo.files[i] = nil
+    end
+  end
+  return newInfo
+end
+
 local function getInformation(pack)
   local success, repos = pcall(getRepos)
   if not success or repos==-1 then
@@ -230,7 +276,7 @@ local function getInformation(pack)
       elseif type(lPacks) == "table" then
         for k in pairs(lPacks) do
           if k==pack then
-            return lPacks[k],j.repo
+            return parseFolders(pack, j.repo, lPacks[k]),j.repo
           end
         end
       end
@@ -241,7 +287,7 @@ local function getInformation(pack)
     for i,j in pairs(lRepos.repos) do
       for k in pairs(j) do
         if k==pack then
-          return j[k],i
+          return parseFolders(pack, i, j[k]),i
         end
       end
     end
@@ -278,14 +324,17 @@ local function provideInfo(pack)
     print("Note: "..info.note)
     done = true
   end
+  if info.files then
+    print("Number of files: "..tostring(#info.files))
+    done = true
+  end
   if not done then
     print("No information provided.")
   end
 end
 
-local tPacks = readFromFile(1)
-
 local function installPackage(pack,path,update)
+  local tPacks = readFromFile(1)
   update = update or false
   if not pack then
     printUsage()
@@ -501,6 +550,16 @@ elseif args[1] == "update" then
   updatePackage(args[2])
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
+elseif args[1] == "superAmazingDebugPrint" then
+  local file,msg = io.open("/oppm-debugprint.lua","wb")
+  if not file then
+    io.stderr:write("Error while trying to output debug print: "..msg)
+    return
+  end
+  local sPacks = serial.serialize(getInformation(args[2]))
+  file:write(sPacks)
+  file:close()
+  print("Debug print saved to /oppm-debugprint.lua")
 else
   printUsage()
   return
