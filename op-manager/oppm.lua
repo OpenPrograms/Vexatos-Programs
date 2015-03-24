@@ -242,7 +242,7 @@ local function parseFolders(pack, repo, info)
     end
     file:write(filestring)
     file:write("\n")
-    file:write(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="), nil)
+    file:write(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="))
     file:close()
     print("Debug print saved to /oppm-debugprint2.lua")
     
