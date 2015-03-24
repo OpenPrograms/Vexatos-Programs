@@ -226,7 +226,20 @@ local function parseFolders(pack, repo, info)
       io.stderr:write("Please contact the author of that package.\n")
       return nil
     end
-    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="))
+    --Debug
+    local file,msg = io.open("/oppm-debugprint2.lua","wb")
+    if not file then
+      io.stderr:write("Error while trying to output debug print: "..msg)
+      return
+    end
+    file:write(filestring)
+    file:write("\n")
+    file:write(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="), nil)
+    file:close()
+    print("Debug print saved to /oppm-debugprint2.lua")
+    
+    --Debug
+    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="), nil)
   end
 
   local function unserializeFiles(files, repo, namePath, branch, relPath)
@@ -468,7 +481,7 @@ local function installPackage(pack,path,update)
           tPacks[pack][i] = nPath
         else
           response = response or ""
-          term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
+          print("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
           fs.remove(nPath)
           for o,p in pairs(tPacks[pack]) do
             fs.remove(p)
