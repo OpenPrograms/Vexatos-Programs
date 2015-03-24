@@ -248,7 +248,7 @@ local function parseFolders(pack, repo, info)
   end
 
   local function nonSpecial(text)
-    return text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%1")
+    return text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%%%1")
   end
 
   local function unserializeFiles(files, repo, namePath, branch, relPath)
