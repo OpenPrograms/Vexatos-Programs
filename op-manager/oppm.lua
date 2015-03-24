@@ -247,7 +247,7 @@ local function parseFolders(pack, repo, info)
 
   local newInfo = info
   for i,j in pairs(info.files) do
-    if string.find(j,"^:")  then
+    if string.find(i,"^:")  then
       local branch =  string.gsub(i,"^(.-)/.+","%1"):gsub("/?$",""):gsub("^/?","")
       local namePath = string.gsub(i,".-(/.+)$","%1"):gsub("/?$",""):gsub("^/?","")
 
