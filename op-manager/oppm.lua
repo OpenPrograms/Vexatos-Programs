@@ -247,15 +247,19 @@ local function parseFolders(pack, repo, info)
     return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] = "), nil)
   end
 
+  local function nonSpecial(text)
+    return text:gsub("([%^%$%(%)%%%.%[%]%*%+%-%?])", "%1")
+  end
+
   local function unserializeFiles(files, repo, namePath, branch, relPath)
     if not files then return nil end
     local tFiles = {}
     for _,v in pairs(files) do
       if v["type"] == "file" then
-        local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..repo.."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
+        local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
         print(v["download_url"])
         print(newPath)
-        tFiles[newPath] = fs.concat(relPath, newPath:gsub(branch.."/(.+)$","%1"), nil)
+        tFiles[newPath] = fs.concat(relPath, newPath:gsub(".*"..nonSpecial(branch).."/(.+)$","%1"), nil)
       elseif v["type"] == "dir" then
         local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
         for p,q in pairs(newFiles) do
