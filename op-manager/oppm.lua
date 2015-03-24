@@ -230,7 +230,7 @@ local function parseFolders(pack, repo, info)
       end
       io.stderr:write("Please contact the author of that package.\n")
       return nil
-    end]]
+    end
     --Debug
     local file,msg = io.open("/oppm-debugprint2.lua","wb")
     if not file then
