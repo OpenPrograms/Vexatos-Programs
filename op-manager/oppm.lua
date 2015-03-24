@@ -251,6 +251,7 @@ local function parseFolders(pack, repo, info)
   local newInfo = info
   for i,j in pairs(info.files) do
     if string.find(i,"^:")  then
+      i = i:gsub("^:","")
       local branch =  string.gsub(i,"^(.-)/.+","%1"):gsub("/?$",""):gsub("^/?","")
       local namePath = string.gsub(i,".-(/.+)$","%1"):gsub("/?$",""):gsub("^/?","")
 
@@ -442,7 +443,7 @@ local function installPackage(pack,path,update)
       tPacks[pack][i] = nPath
     else
       response = response or ""
-      term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
+      print("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
       fs.remove(nPath)
       for o,p in pairs(tPacks[pack]) do
         fs.remove(p)
