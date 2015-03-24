@@ -222,15 +222,16 @@ local function parseFolders(pack, repo, info)
 
   local function getFolderTable(repo, namePath, branch)
     print("https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
-    local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath, {["ref"]=branch})
-    if not success or filestring:find("\"message\": \"Not Found\"") then
+    --local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath, {["ref"]=branch})
+      local filestring = getContent("https://api.github.com/repos/"..repo.."/contents/"..namePath, {["ref"]=branch})
+    --[[if not success or filestring:find("\"message\": \"Not Found\"") then
       io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
       if filestring:find("\"message\": \"Not Found\"") then
         io.stderr:write("Folder "..namePath.." does not exist.\n")
       end
       io.stderr:write("Please contact the author of that package.\n")
       return nil
-    end
+    end]]
     --Debug
     local file,msg = io.open("/oppm-debugprint2.lua","wb")
     if not file then
