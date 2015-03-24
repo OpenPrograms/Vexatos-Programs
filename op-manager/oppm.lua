@@ -260,9 +260,9 @@ local function parseFolders(pack, repo, info)
   local newInfo = info
   for i,j in pairs(info.files) do
     if string.find(i,"^:")  then
-      i = i:gsub("^:","")
-      local branch =  string.gsub(i,"^(.-)/.+","%1"):gsub("/?$",""):gsub("^/?","")
-      local namePath = string.gsub(i,".-(/.+)$","%1"):gsub("/?$",""):gsub("^/?","")
+      local iPath = i:gsub("^:","")
+      local branch =  string.gsub(iPath,"^(.-)/.+","%1"):gsub("/?$",""):gsub("^/?","")
+      local namePath = string.gsub(iPath,".-(/.+)$","%1"):gsub("/?$",""):gsub("^/?","")
 
       local files = unserializeFiles(getFolderTable(repo, namePath, branch), repo, namePath, branch, j)
       if not files then return nil end
