@@ -41,9 +41,9 @@ local function printUsage()
   print(" -f: Force creation of directories and overwriting of existing files.")
 end
 
-local function getContent(url)
+local function getContent(url, parameters)
   local sContent = ""
-  local result, response = pcall(internet.request, url)
+  local result, response = pcall(internet.request, url, parameters)
   if not result then
     io.stderr:write("What the actual fridge.\n")
     io.stderr:write("Apparently I can't request anything from the GitHub API.\n")
@@ -222,7 +222,7 @@ local function parseFolders(pack, repo, info)
 
   local function getFolderTable(repo, namePath, branch)
     print("https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
-    local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
+    local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath, {["ref"]=branch})
     if not success or filestring:find("\"message\": \"Not Found\"") then
       io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
       io.stderr:write("Please contact the author of that package.\n")
