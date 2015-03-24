@@ -275,7 +275,7 @@ local function parseFolders(pack, repo, info)
 
       local files = unserializeFiles(getFolderTable(repo, namePath, branch), repo, namePath, branch, j)
       if not files then return nil end
-      for p,q in pairs(newFiles) do
+      for p,q in pairs(files) do
         newInfo.files[p] = q
       end
       newInfo.files[i] = nil
