@@ -242,9 +242,7 @@ local function parseFolders(pack, repo, info)
     local tFiles = {}
     for _,v in pairs(files) do
       if v["type"] == "file" then
-        local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
-        --print(v["download_url"])
-        --print(newPath)
+        local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/*$",""):gsub("^/*","")
         tFiles[newPath] = relPath
       elseif v["type"] == "dir" then
         local newFiles = unserializeFiles(getFolderTable(repo, relPath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
@@ -260,13 +258,17 @@ local function parseFolders(pack, repo, info)
   for i,j in pairs(info.files) do
     if string.find(i,"^:")  then
       local iPath = i:gsub("^:","")
-      local branch =  string.gsub(iPath,"^(.-)/.+","%1"):gsub("/?$",""):gsub("^/?","")
-      local namePath = string.gsub(iPath,".-(/.+)$","%1"):gsub("/?$",""):gsub("^/?","")
+      local branch = string.gsub(iPath,"^(.-)/.+","%1"):gsub("/*$",""):gsub("^/*","")
+      local namePath = string.gsub(iPath,".-(/.+)$","%1"):gsub("/*$",""):gsub("^/*","")
 
-      local files = unserializeFiles(getFolderTable(repo, namePath, branch), repo, namePath, branch, j)
+      local files = unserializeFiles(getFolderTable(repo, namePath, branch), repo, namePath, branch, j:gsub("^//","/"))
       if not files then return nil end
       for p,q in pairs(files) do
-        newInfo.files[p] = q
+        if j:find("^//") then
+          newInfo.files[p] = "/"..q
+        else
+          newInfo.files[p] = q
+        end
       end
       newInfo.files[i] = nil
     end
