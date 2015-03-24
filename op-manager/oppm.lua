@@ -225,7 +225,7 @@ local function parseFolders(pack, repo, info)
       io.stderr:write("Please contact the author of that package.\n")
       return nil
     end
-    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] =")))
+    return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"%S-\")%s?:", "[%1] ="))
   end
 
   local function unserializeFiles(files, repo, namePath, branch, relPath)
@@ -236,7 +236,7 @@ local function parseFolders(pack, repo, info)
         local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..repo.."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
         tFiles[newPath] = fs.concat(relPath, newPath:gsub(branch.."/(.+)$","%1"), nil)
       elseif v["type"] == "dir" then
-        local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"])
+        local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
         for p,q in pairs(newFiles) do
           tFiles[p] = q
         end
