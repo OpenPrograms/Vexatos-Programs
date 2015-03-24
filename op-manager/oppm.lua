@@ -219,6 +219,7 @@ end
 local function parseFolders(pack, repo, info)
 
   local function getFolderTable(repo, namePath, branch)
+    print("https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
     local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
     if not success or filestring:find("\"message\": \"Not Found\"") then
       io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
@@ -234,6 +235,8 @@ local function parseFolders(pack, repo, info)
     for _,v in pairs(files) do
       if v["type"] == "file" then
         local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..repo.."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
+        print(v["download_url"])
+        print(newPath)
         tFiles[newPath] = fs.concat(relPath, newPath:gsub(branch.."/(.+)$","%1"), nil)
       elseif v["type"] == "dir" then
         local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
@@ -552,12 +555,14 @@ elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
 elseif args[1] == "superAmazingDebugPrint" then
   if not getInternet() then return end
+  local info = getInformation(args[2])
+  if not info then return end
   local file,msg = io.open("/oppm-debugprint.lua","wb")
   if not file then
     io.stderr:write("Error while trying to output debug print: "..msg)
     return
   end
-  local sPacks = serial.serialize(getInformation(args[2]), nil)
+  local sPacks = serial.serialize(info)
   file:write(sPacks)
   file:close()
   print("Debug print saved to /oppm-debugprint.lua")
