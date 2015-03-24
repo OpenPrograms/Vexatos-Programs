@@ -231,19 +231,6 @@ local function parseFolders(pack, repo, info)
       io.stderr:write("Please contact the author of that package.\n")
       return nil
     end
-    --Debug
-    local file,msg = io.open("/oppm-debugprint2.lua","wb")
-    if not file then
-      io.stderr:write("Error while trying to output debug print: "..msg)
-      return
-    end
-    file:write(filestring)
-    file:write("\n")
-    file:write(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] = "))
-    file:close()
-    print("Debug print saved to /oppm-debugprint2.lua")
-    
-    --Debug
     return serial.unserialize(filestring:gsub("%[", "{"):gsub("%]", "}"):gsub("(\"[^%s,]-\")%s?:", "[%1] = "), nil)
   end
 
@@ -259,7 +246,7 @@ local function parseFolders(pack, repo, info)
         local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
         print(v["download_url"])
         print(newPath)
-        tFiles[newPath] = fs.concat(relPath, newPath:gsub(".*"..nonSpecial(branch).."/(.+)$","%1"), nil)
+        tFiles[newPath] = fs.concat(relPath, newPath:gsub(".+/(.-)$","%1"), nil)
       elseif v["type"] == "dir" then
         local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
         for p,q in pairs(newFiles) do
