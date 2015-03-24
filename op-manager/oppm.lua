@@ -45,11 +45,13 @@ local function getContent(url)
   local sContent = ""
   local result, response = pcall(internet.request, url)
   if not result then
+    io.stderr:write("What the actual fridge.\n")
+    io.stderr:write("Apparently I can't request anything from the GitHub API.\n")
     return nil
   end
-    for chunk in response do
-      sContent = sContent..chunk
-    end
+  for chunk in response do
+    sContent = sContent..chunk
+  end
   return sContent
 end
 
