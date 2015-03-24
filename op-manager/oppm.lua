@@ -219,7 +219,6 @@ end
 local function parseFolders(pack, repo, info)
 
   local function getFolderTable(repo, namePath, branch)
-    print("https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
     local success, filestring = pcall(getContent,"https://api.github.com/repos/"..repo.."/contents/"..namePath.."?ref="..branch)
     if not success or filestring:find("\"message\": \"Not Found\"") then
       io.stderr:write("Error while trying to parse folder names in declaration of package "..pack..".\n")
@@ -244,11 +243,11 @@ local function parseFolders(pack, repo, info)
     for _,v in pairs(files) do
       if v["type"] == "file" then
         local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/?$",""):gsub("^/?","")
-        print(v["download_url"])
-        print(newPath)
-        tFiles[newPath] = fs.concat(relPath, newPath:gsub(".+/(.-)$","%1"), nil)
+        --print(v["download_url"])
+        --print(newPath)
+        tFiles[newPath] = relPath
       elseif v["type"] == "dir" then
-        local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
+        local newFiles = unserializeFiles(getFolderTable(repo, relPath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
         for p,q in pairs(newFiles) do
           tFiles[p] = q
         end
