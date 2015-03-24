@@ -10,11 +10,10 @@ local serial = require("serialization")
 local shell = require("shell")
 local term = require("term")
 
-local wget = loadfile("/bin/wget.lua")
-
 local gpu = component.gpu
 
 local internet
+local wget
 
 local args, options = shell.parse(...)
 
@@ -24,6 +23,7 @@ local function getInternet()
     return false
   end
   internet = require("internet")
+  wget = loadfile("/bin/wget.lua")
   return true
 end
 
@@ -551,12 +551,13 @@ elseif args[1] == "update" then
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
 elseif args[1] == "superAmazingDebugPrint" then
+  if not getInternet() then return end
   local file,msg = io.open("/oppm-debugprint.lua","wb")
   if not file then
     io.stderr:write("Error while trying to output debug print: "..msg)
     return
   end
-  local sPacks = serial.serialize(getInformation(args[2]))
+  local sPacks = serial.serialize(getInformation(args[2]), nil)
   file:write(sPacks)
   file:close()
   print("Debug print saved to /oppm-debugprint.lua")
