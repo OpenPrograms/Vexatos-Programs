@@ -453,8 +453,8 @@ local function installPackage(pack,path,update)
     if success and response then
       tPacks[pack][i] = nPath
     else
-      response = response or ""
-      print("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
+      response = response or "no error message"
+      term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
       fs.remove(nPath)
       for o,p in pairs(tPacks[pack]) do
         fs.remove(p)
@@ -478,8 +478,8 @@ local function installPackage(pack,path,update)
         if success and response then
           tPacks[pack][i] = nPath
         else
-          response = response or ""
-          print("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
+          response = response or "no error message"
+          term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
           fs.remove(nPath)
           for o,p in pairs(tPacks[pack]) do
             fs.remove(p)
@@ -565,19 +565,6 @@ elseif args[1] == "update" then
   updatePackage(args[2])
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
-elseif args[1] == "superAmazingDebugPrint" then
-  if not getInternet() then return end
-  local info = getInformation(args[2])
-  if not info then return end
-  local file,msg = io.open("/oppm-debugprint.lua","wb")
-  if not file then
-    io.stderr:write("Error while trying to output debug print: "..msg)
-    return
-  end
-  local sPacks = serial.serialize(info)
-  file:write(sPacks)
-  file:close()
-  print("Debug print saved to /oppm-debugprint.lua")
 else
   printUsage()
   return
