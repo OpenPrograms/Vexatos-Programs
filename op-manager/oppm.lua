@@ -41,9 +41,9 @@ local function printUsage()
   print(" -f: Force creation of directories and overwriting of existing files.")
 end
 
-local function getContent(url, parameters)
+local function getContent(url)
   local sContent = ""
-  local result, response = pcall(internet.request, url, parameters)
+  local result, response = pcall(internet.request, url)
   if not result then
     return nil
   end
