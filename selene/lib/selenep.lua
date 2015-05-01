@@ -173,7 +173,7 @@ local function findDollars(tChunk, i, part)
     tChunk[i] = "_G._selene._newFunc"
   elseif curr:find("s", 1, true) then
     tChunk[i] = "_G._selene._newString"
-  elseif tChunk[i - 1]:find("[:$.]") then
+  elseif tChunk[i - 1]:find("[:%.]") then
     tChunk[i] = "_tbl"
   else
     perror("invalid $ at index "..i)
