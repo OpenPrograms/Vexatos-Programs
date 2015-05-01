@@ -191,19 +191,8 @@ local fmt = {
 local _Table = {}
 local _String = {}
 
-local function str_iterator(s)
-  local i = 0
-  local n = #s
-  return function ()
-    i = i + 1
-    if i <= n then return i, s:sub(i,i), nil end
-  end
-end
-
 local smt = shallowcopy(mt)
 smt.ltype = "stringlist"
-smt.__pairs = str_iterator
-smt.__ipairs = str_iterator
 smt.__call = function(str)
   return table.concat(str._tbl)
 end
