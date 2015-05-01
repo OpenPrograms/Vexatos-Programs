@@ -390,7 +390,7 @@ local function rawflatten(self)
           table.insert(flattened, v)
         end
       end
-    elseif j ~= nil
+    elseif j ~= nil then
       table.insert(flattened, j)
     end
   end
