@@ -87,7 +87,8 @@ local function checkList(n, t)
 end
 
 local function mpairs(obj)
-  if tblType(obj) == "list" then
+  local t = tblType(obj)
+  if t == "list" or t == "stringlist" then
     return ipairs(obj._tbl)
   else
     return pairs(obj._tbl)
