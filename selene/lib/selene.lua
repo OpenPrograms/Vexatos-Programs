@@ -8,16 +8,16 @@ Author: Vexatos
 --------
 
 local function shallowcopy(orig)
-    local copy
-    if type(orig) == 'table' then
-        copy = {}
-        for k, v in pairs(orig) do
-            copy[k] = v
-        end
-    else -- number, string, boolean, etc
-        copy = orig
+  local copy
+  if type(orig) == 'table' then
+    copy = {}
+    for k, v in pairs(orig) do
+      copy[k] = v
     end
-    return copy
+  else
+    copy = orig
+  end
+  return copy
 end
 
 local function insert(tbl, key, value)
@@ -44,19 +44,19 @@ end
 -- Returns the number of parameters on the function
 local function parCount(obj, def)
   checkArg(1, obj, "table", "function")
-  checkArg(2, def, "number")
+  checkArg(2, def, "number", "nil")
   if type(obj) == "function" then
     return def
   end
   local m = getmetatable(obj)
-  return m.parCount or def
+  return (m and m.parCount) or def
 end
 
--- Returns "list" on a list, "map" otherwise
+-- Returns the table type or the type
 local function tblType(obj)
   if type(obj) == "table" then
     local m = getmetatable(obj)
-    return m.ltype or "table"
+    return (m and m.ltype) or "table"
   end
   return type(obj)
 end
@@ -94,10 +94,13 @@ local function mpairs(obj)
   end
 end
 
+local allMaps = {"map", "list", "stringlist"}
+
 -- Errors is the value is not a valid type (list or map)
 local function checkType(n, have, ...)
   have = tblType(have)
-  if #{...} == 0 then return end
+  local things = {...}
+  if #things == 0 then things = allMaps end
   local function check(want, ...)
     if not want then
       return false
@@ -105,7 +108,7 @@ local function checkType(n, have, ...)
       return have == want or check(...)
     end
   end
-  if not check(...) then
+  if not check(table.unpack(things)) then
     local msg = string.format("[Selene] bad argument #%d (%s expected, got %s)",
                               n, table.concat({...}, " or "), have)
     error(msg, 3)
@@ -114,10 +117,10 @@ end
 
 -- Errors if the value is not a function or does not have the required parameter count
 local function checkFunc(n, have, ...)
-  checkArg(n, have, "table", "function")
-  have = type(have)
-  if have == "function" then return end
+  checkType(n, have, "function")
+  if type(have) == "function" then return end
   local haveParCount = parCount(have, nil)
+  have = type(have)
   if not haveParCount then
     local msg = string.format("[Selene] bad argument #%d (function expected, got %s)", n, have)
     error(msg, 2)
@@ -160,13 +163,51 @@ local mt = {
   __ipairs = function(tbl)
     return ipairs(tbl._tbl)
   end,
+  __tostring = function(tbl)
+    return tostring(tbl._tbl)
+  end,
   ltype = "map"
 }
 
-local lmt = mt
+local lmt = shallowcopy(mt)
 lmt.ltype = "list"
 
+local fmt = {
+  __call = function(fnc, ...)
+    return fnc._fnc(...)
+  end,
+  __len = function(fnc)
+    return #fnc._fnc
+  end,
+  __pairs = function(fnc)
+    return pairs(fnc._fnc)
+  end,
+  __ipairs = function(fnc)
+    return ipairs(fnc._fnc)
+  end,
+  ltype = "function"
+}
+
 local _Table = {}
+local _String = {}
+
+local function str_iterator(s)
+  local i = 0
+  local n = #s
+  return function ()
+    i = i + 1
+    if i <= n then return i, s:sub(i,i), nil end
+  end
+end
+
+local smt = shallowcopy(mt)
+smt.ltype = "stringlist"
+smt.__pairs = str_iterator
+smt.__ipairs = str_iterator
+smt.__call = function(str)
+  return table.concat(str._tbl)
+end
+smt.__tostring = smt.__call
 
 --------
 -- Initialization functions
@@ -181,6 +222,39 @@ local function new(t)
   end
   newObj._tbl = t
   setmetatable(newObj, mt)
+  return newObj
+end
+
+local function newStringList(s)
+  checkArg(1, s, "table", "nil")
+  s = s or {}
+  local newObj = {}
+  for i,j in pairs(_String) do
+    newObj[i] = j
+  end
+  newObj._tbl = {}
+  for i = 1, #s do
+    if not s[i] or type(s[i]) ~= "string" or #s[i] > 1 then
+      error("[Selene] could not create list: bad table key: "..i.." is not a character", 2)
+    end
+    newObj._tbl[i] = s[i]
+  end
+  setmetatable(newObj, smt)
+  return newObj
+end
+
+local function newString(s)
+  checkArg(1, s, "string", "nil")
+  s = s or ""
+  local newObj = {}
+  for i,j in pairs(_String) do
+    newObj[i] = j
+  end
+  newObj._tbl = {}
+  for i = 1, #s do
+    newObj._tbl[i] = s:sub(i,i)
+  end
+  setmetatable(newObj, smt)
   return newObj
 end
 
@@ -217,9 +291,9 @@ local function newFunc(f, parCnt)
     error("[Selene] could not create function: bad parameter amount: "..parCnt.." is below 0", 2)
   end
   local newF = {}
-  local fm = getmetatable(newF)
-  newF.__call = f
-  newF.parCount = parCnt
+  local fm = shallowcopy(fmt)
+  newF._fnc = f
+  fm.parCount = parCnt
   setmetatable(newF, fm)
   return newF
 end
@@ -286,7 +360,7 @@ end
 
 -- Removes the first amt entries of the list, returns a list
 local function tbl_drop(self, amt)
-  checkType(1, self, "list")
+  checkType(1, self, "list", "stringlist")
   checkArg(2, amt, "number")
   amt = clamp(amt, 0, #self)
   if amt == 0 then return self
@@ -294,14 +368,9 @@ local function tbl_drop(self, amt)
     self._tbl = {}
     return self
   else
-    local done = 0
-    local dropped = shallowcopy(self._tbl)
-    for i, j in mpairs(self) do
-      table.remove(dropped, i)
-      done = done + 1
-      if done >= amt then
-        break
-      end
+    local dropped = {}
+    for i = amt + 1, #self do
+      insert(dropped, self._tbl[i])
     end
     self._tbl = dropped
     return self
@@ -310,24 +379,28 @@ end
 
 -- Removes entries while the function returns true, returns a list
 local function tbl_dropwhile(self, f)
-  checkType(1, self, "list")
+  checkType(1, self, "list", "stringlist")
   checkFunc(2, f)
   local parCnt = parCount(f)
-  local dropped = shallowcopy(self._tbl)
+  local dropped = {}
+  local curr = 1
   if parCnt == 1 then
     for i, j in mpairs(self) do
+      curr = i
       if not f(j) then
         break
       end
-      table.remove(dropped, i)
     end
   else
     for i, j in mpairs(self) do
+      curr = i
       if not f(i, j) then
         break
       end
-      table.remove(dropped, i)
     end
+  end
+  for i = curr, #self do
+    insert(dropped, self._tbl[i])
   end
   self._tbl = dropped
   return self
@@ -335,7 +408,7 @@ end
 
 --inverts the list
 local function tbl_reverse(self)
-  checkType(1, self, "list")
+  checkType(1, self, "list", "stringlist")
   local reversed = {}
   for i, j in mpairs(self) do
     table.insert(reversed, 1, j)
@@ -401,6 +474,43 @@ local function tbl_flatten(self)
   checkType(1, self, "list")
   self._tbl = rawflatten(self._tbl)
   return self
+end
+
+--------
+-- Bulk data operations on stringlists
+--------
+
+local function strl_filter(self, f)
+  checkType(1, self, "stringlist")
+  checkFunc(2, f)
+  local filtered = {}
+  local parCnt = parCount(f)
+  if parCnt == 1 then
+    for i, j in mpairs(self) do
+      if f(j) then
+        insert(filtered, j)
+      end
+    end
+  else
+    for i, j in mpairs(self) do
+      if f(i, j) then
+        insert(filtered, i, j)
+      end
+    end
+  end
+  return newStringList(filtered)
+end
+
+local function strl_drop(self, amt)
+  checkType(1, self, "stringlist")
+  self = tbl_drop(self, amt)
+  return table.concat(self._tbl)
+end
+
+local function strl_dropwhile(self, f)
+  checkType(1, self, "stringlist")
+  self = tbl_dropwhile(self, f)
+  return table.concat(self._tbl)
 end
 
 --------
@@ -496,7 +606,7 @@ local function str_dropwhile(self, f)
   end
   if index == 0 then return self
   elseif index == #self then return ""
-  return self:sub(index + 1) end
+  else return self:sub(index + 1) end
 end
 
 -- Returns the accumulator
@@ -542,10 +652,17 @@ end
 --------
 
 local function init()
-  if _G.selene and _G.selene.initDone then return end
-  if not _G.selene then _G.selene = {} end
+  if _G._selene and _G._selene.initDone then return end
+  if not _G._selene then _G._selene = {} end
 
-  _G._selene._new = new
+  _G._selene._new = function(t)
+    if type(t) == "string" then
+      return newString(t)
+    else
+      return newListOrMap(t)
+    end
+  end
+  _G._selene._newString = newString
   _G._selene._newList = newList
   _G._selene._newFunc = newFunc
   _G.ltype = tblType
@@ -588,11 +705,24 @@ local function init()
     newObj._tbl = shallowcopy(self._tbl)
     return newObj
   end
+  
+  _String.foreach = tbl_foreach
+  _String.map = tbl_map
+  _String.filter = strl_filter
+  _String.drop = strl_drop
+  _String.dropwhile = strl_dropwhile
+  _String.reverse = tbl_reverse
+  _String.foldleft = tbl_foldleft
+  _String.foldright = tbl_foldright
+  _String.split = function(self, sep)
+    checkType(1, self, "stringlist")
+    return str_split(tostring(self), sep)
+  end
 
-if _G.selene and _G.selene.liveMode then
+if _G._selene and _G._selene.liveMode then
   local load = _G.load
   _G.load = function(ld, src, mv, env) 
-    if _G.selene and _G.selene.liveMode then
+    if _G._selene and _G._selene.liveMode then
       local s = ""
       if type(ld) == "function" then
         local nws = ld()
@@ -607,10 +737,10 @@ if _G.selene and _G.selene.liveMode then
   end
 end
 
-  _G.selene.initDone = true
+  _G._selene.initDone = true
 end
 
-if not _G.selene or not _G.selene.initDone then
+if not _G._selene or not _G._selene.initDone then
   init()
 end
 
