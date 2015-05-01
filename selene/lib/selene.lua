@@ -658,6 +658,7 @@ local function init()
   _G.ltype = tblType
   _G.checkType = checkType
   _G.checkFunc = checkFunc
+  _G.parCount = parCount
   _G.lpairs = mpairs
   _G.isList = isList
 
