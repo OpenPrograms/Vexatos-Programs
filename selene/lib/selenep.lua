@@ -175,17 +175,17 @@ end
 
 local function findDollars(tChunk, i, part)
   local curr = tChunk[i + 1]
-  if curr:find("(", 1, true) then
+  if curr:find("^(") then
     tChunk[i] = "_G._selene._new"
-  elseif curr:find("l", 1, true) then
+  elseif curr:find("^l") then
     tChunk[i] = "_G._selene._newList"
-  elseif curr:find("f", 1, true) then
+  elseif curr:find("^f") then
     tChunk[i] = "_G._selene._newFunc"
-  elseif curr:find("s", 1, true) then
+  elseif curr:find("^s") then
     tChunk[i] = "_G._selene._newString"
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
-    tChunk[i] = "._tbl"
+    tChunk[i] = "()"
   else
     perror("invalid $ at index "..i)
   end
@@ -195,6 +195,7 @@ end
 local function findSelfCall(tChunk, i, part)
   local prev = tChunk[i - 1]
   local front = tChunk[i + 1]
+  if not tChunk[i + 2] then tChunk[i + 2] = ""
   if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) then
     tChunk[i+1] = tChunk[i+1].."()"
     return true
