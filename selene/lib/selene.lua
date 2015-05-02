@@ -667,7 +667,9 @@ end
 -- Adding to global variables
 --------
 
-local function init()
+local oldload
+
+local function load()
   if _G._selene and _G._selene.initDone then return end
   if not _G._selene then _G._selene = {} end
 
@@ -738,7 +740,7 @@ local function init()
   end
 
 if _G._selene and _G._selene.liveMode then
-  local load = _G.load
+  oldload = _G.load
   _G.load = function(ld, src, mv, env) 
     if _G._selene and _G._selene.liveMode then
       local s = ""
@@ -751,18 +753,49 @@ if _G._selene and _G._selene.liveMode then
       end
       ld = parse(ld)
     end
-    return load(ld, src, mv, env)
+    return oldload(ld, src, mv, env)
   end
 end
 
   _G._selene.initDone = true
 end
 
+local function unload()
+  if not _G._selene or not _G._selene.initDone then return end
+  if _G._selene and _G._selene.liveMode and oldload then
+    _G.load = oldload
+  end
+  _G._selene = {}
+  _G.ltype = nil
+  _G.checkType = nil
+  _G.checkFunc = nil
+  _G.parCount = nil
+  _G.lpairs = nil
+  _G.isList = nil
+
+  _G.string.foreach = nil
+  _G.string.map = nil
+  _G.string.filter = nil
+  _G.string.drop = nil
+  _G.string.dropwhile = nil
+  _G.string.foldleft = nil
+  _G.string.foldright = nil
+  _G.string.split = nil
+  
+  _G.table.shallowcopy = nil
+  _G.table.flatten = nil
+end
+
 if not _G._selene or not _G._selene.initDone then
-  init()
+  load()
 end
 
 local selene = {}
 selene.parse = parse
+selene.load = load
+selene.unload = unload
+selene.isLoaded = function()
+  return _G._selene and _G._selene.initDone
+end
 
 return selene
