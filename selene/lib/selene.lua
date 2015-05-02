@@ -36,14 +36,6 @@ local function shallowcopy(orig)
   return copy
 end
 
-local function insert(tbl, key, value)
-  if value then
-    tbl[key] = value
-  else
-    table.insert(tbl, key)
-  end
-end
-
 local function clamp(num, mn, mx)
   checkArg(1, num, "number")
   checkArg(2, mn, "number", "nil")
@@ -82,6 +74,8 @@ local function isList(t)
   local tp = tblType(t)
   if tp == "list" or tp == "stringlist" then
     return true
+  elseif tp == "map" then
+    return false
   elseif tp == "table" then
     for i in pairs(newObj._tbl) do
       if not type(i) == "number" then
@@ -99,6 +93,19 @@ local function checkList(n, t)
   if not isList(t) then
     local msg = string.format("[Selene] bad argument #%d (list expected, got %s)", n, have)
     error(msg, 2)
+  end
+end
+
+local function insert(tbl, key, value, fuzzyList)
+  fuzzyList = fuzzyList or false
+  if value then
+    if fuzzyList and isList(tbl) then
+      table.insert(tbl, value)
+    else
+      tbl[key] = value
+    end
+  else
+    table.insert(tbl, key)
   end
 end
 
@@ -350,13 +357,13 @@ local function tbl_filter(self, f)
   if parCnt == 1 then
     for i, j in mpairs(self) do
       if f(j) then
-        insert(filtered, i, j)
+        insert(filtered, i, j, true)
       end
     end
   else
     for i, j in mpairs(self) do
       if f(i, j) then
-        insert(filtered, i, j)
+        insert(filtered, i, j, true)
       end
     end
   end
