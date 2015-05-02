@@ -765,7 +765,11 @@ local function unload()
   if _G._selene and _G._selene.liveMode and oldload then
     _G.load = oldload
   end
-  _G._selene = {}
+  do
+    local liveMode = _G._selene.liveMode
+    _G._selene = {}
+    _G._selene.liveMode = liveMode
+  end
   _G.ltype = nil
   _G.checkType = nil
   _G.checkFunc = nil
