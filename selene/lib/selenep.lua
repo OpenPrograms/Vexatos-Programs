@@ -175,7 +175,7 @@ end
 
 local function findDollars(tChunk, i, part)
   local curr = tChunk[i + 1]
-  if curr:find("^(") then
+  if curr:find("^%(") then
     tChunk[i] = "_G._selene._new"
   elseif curr:find("^l") then
     tChunk[i] = "_G._selene._newList"
