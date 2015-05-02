@@ -77,7 +77,7 @@ local function isList(t)
   elseif tp == "map" then
     return false
   elseif tp == "table" then
-    for i in pairs(newObj._tbl) do
+    for i in pairs(t._tbl) do
       if not type(i) == "number" then
         return false
       elseif i < 1 then
@@ -99,7 +99,7 @@ end
 local function insert(tbl, key, value, fuzzyList)
   fuzzyList = fuzzyList or false
   if value then
-    if fuzzyList and isList(tbl) then
+    if fuzzyList then
       table.insert(tbl, value)
     else
       tbl[key] = value
@@ -350,20 +350,27 @@ end
 
 -- Only returns the characters that match the filter, returns a list if possible, a map otherwise
 local function tbl_filter(self, f)
-  checkType(1, self)
+  checkType(1, self, "map", "list")
   checkFunc(2, f)
+  local list = false
+  do
+    local tp = tblType(self)
+    if tp == "list" then
+      list = true
+    end
+  end
   local filtered = {}
   local parCnt = parCount(f)
   if parCnt == 1 then
     for i, j in mpairs(self) do
       if f(j) then
-        insert(filtered, i, j, true)
+        insert(filtered, i, j, list)
       end
     end
   else
     for i, j in mpairs(self) do
       if f(i, j) then
-        insert(filtered, i, j, true)
+        insert(filtered, i, j, list)
       end
     end
   end
