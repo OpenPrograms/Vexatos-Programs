@@ -195,7 +195,7 @@ end
 local function findSelfCall(tChunk, i, part)
   local prev = tChunk[i - 1]
   local front = tChunk[i + 1]
-  if not tChunk[i + 2] then tChunk[i + 2] = ""
+  if not tChunk[i + 2] then tChunk[i + 2] = "" end
   if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) then
     tChunk[i+1] = tChunk[i+1].."()"
     return true
