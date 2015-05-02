@@ -238,7 +238,7 @@ local function findForeach(tChunk, i, part)
       step = step - 1
     end
   end
-  params = split(table.concat(params))
+  params = split(table.concat(params), ",")
   step = i + 1
   local stop = nil
   local vars = {}
@@ -250,7 +250,7 @@ local function findForeach(tChunk, i, part)
       step = step + 1
     end
   end
-  vars = split(table.concat(vars))
+  vars = split(table.concat(vars), ",")
   for _, p in ipairs(params) do
     if not p:find("^"..varPattern .. "$") then
       return false
