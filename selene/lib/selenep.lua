@@ -179,10 +179,13 @@ local function findDollars(tChunk, i, part)
     tChunk[i] = "_G._selene._new"
   elseif curr:find("^l") then
     tChunk[i] = "_G._selene._newList"
+    table.remove(tChunk, i + 1)
   elseif curr:find("^f") then
     tChunk[i] = "_G._selene._newFunc"
+    table.remove(tChunk, i + 1)
   elseif curr:find("^s") then
     tChunk[i] = "_G._selene._newString"
+    table.remove(tChunk, i + 1)
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"

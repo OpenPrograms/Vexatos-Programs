@@ -117,6 +117,16 @@ local function mpairs(obj)
   end
 end
 
+local validMaps = {map = true, list = true, stringlist = true}
+
+local function lpairs(obj)
+  if validMaps[tblType(obj)] then
+    return mpairs(obj)
+  else
+    return pairs(obj)
+  end
+end
+
 local allMaps = {"map", "list", "stringlist"}
 
 -- Errors is the value is not a valid type (list or map)
@@ -688,7 +698,7 @@ local function load()
   _G.checkType = checkType
   _G.checkFunc = checkFunc
   _G.parCount = parCount
-  _G.lpairs = mpairs
+  _G.lpairs = lpairs
   _G.isList = isList
 
   _G.string.foreach = str_foreach
