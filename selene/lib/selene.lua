@@ -475,7 +475,7 @@ end
 
 local function tbl_flatten(self)
   checkType(1, self, "list")
-  return return newListOrMap(rawflatten(self._tbl))
+  return newListOrMap(rawflatten(self._tbl))
 end
 
 --------
