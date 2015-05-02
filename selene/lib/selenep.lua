@@ -107,7 +107,7 @@ end
 -------------------------------------------------------------------------------
 
 local varPattern = "[%a_][%w_]*"
-local lambdaParPattern = "("..varPattern..")((%s*,%s*)("..varPattern.."))*"
+--local lambdaParPattern = "("..varPattern..")((%s*,%s*)("..varPattern.."))*"
 
 local function perror(msg, lvl)
   msg = msg or "unknown error"
@@ -160,11 +160,12 @@ local function findLambda(tChunk, i, part)
   if not funcode:find("return", 1, true) then
     funcode = "return "..funcode
   end
-  inst = table.concat(params, ",")
-  if not inst:find("^"..lambdaParPattern .. "$") then
-    perror("invalid lambda at index "..i..": invalid parameters")
+  for _, s in ipairs(params) do
+    if not s:find("^"..varPattern .. "$") then
+      perror("invalid lambda at index "..i..": invalid parameters")
+    end
   end
-  local func = "_G._selene._newFunc(function("..inst..") "..funcode.." end, "..tostring(#params)..")"
+  local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
   for i = start, stop do
     table.remove(tChunk, start)
   end
@@ -244,11 +245,12 @@ local function findForeach(tChunk, i, part)
       step = step + 1
     end
   end
-  local p = table.concat(params, ",")
-  if not p:find("^"..lambdaParPattern .. "$") then
-    return false
+  for _, p in ipairs(params) do
+    if not p:find("^"..varPattern .. "$") then
+      return false
+    end
   end
-  local func = p .. "in mpairs("..vars..")"
+  local func = table.concat(params, ",") .. "in mpairs("..vars..")"
   for i = start, stop do
     table.remove(tChunk, start)
   end
@@ -298,6 +300,8 @@ local function parse(chunk)
   end
   for i, part in ipairs(tChunk) do
     if keywords[part] then
+      if not tChunk[i + 1] then tChunk[i + 1] = "" end
+      if not tChunk[i - 1] then tChunk[i - 1] = "" end
       local result = keywords[part](tChunk, i, part)
       if result then
         local cnk = table.concat(tChunk, "\n")
