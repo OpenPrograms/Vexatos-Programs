@@ -225,25 +225,24 @@ end
 
 local function findForeach(tChunk, i, part)
   local start = nil
-  local vars = ""
   local step = i - 1
+  local params = {}
   while not start do
     if tChunk[step] == "for" then
       start = step + 1
     else
-      vars = tChunk[step] .. " " .. vars
+      table.insert(params, 1, trim(tChunk[step]))
       step = step - 1
     end
   end
-  local params = split(vars, ",")
   step = i + 1
   local stop = nil
-  vars = ""
+  local vars = {}
   while not stop do
     if tChunk[step] == "do" then
       stop = step - 1
     else
-      vars = vars .. " " .. tChunk[step]
+      table.insert(vars, trim(tChunk[step]))
       step = step + 1
     end
   end
@@ -252,7 +251,12 @@ local function findForeach(tChunk, i, part)
       return false
     end
   end
-  local func = table.concat(params, ",") .. " in lpairs("..vars..")"
+  for _, p in ipairs(vars) do
+    if not p:find("^"..varPattern .. "$") then
+      return false
+    end
+  end
+  local func = table.concat(params, ",") .. " in lpairs("..table.concat(vars, ",")..")"
   for i = start, stop do
     table.remove(tChunk, start)
   end
