@@ -1,4 +1,12 @@
-local unicode = require("unicode")
+local unicode
+
+do
+  local done
+  done, unicode = pcall(require, "unicode")
+  if not done then
+    unicode = string
+  end
+end
 
 local selenep = {}
 
