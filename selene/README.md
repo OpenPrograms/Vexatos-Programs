@@ -89,7 +89,7 @@ for i,j <- b do
   print(i, j)
 end
 ```
-If the table can be iterated through with ipairs (i.e. if every key in the table is a number valid for `ipairs`), it will choose that, otherwise it will choose `pairs`.
+If the table can be iterated through with `ipairs` (i.e. if every key in the table is a number valid for `ipairs`), it will choose that, otherwise it will choose `pairs`.
 
 #Functions
 This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native tables.

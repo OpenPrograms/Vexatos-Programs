@@ -64,7 +64,7 @@ local function tokenize(value)
         table.insert(tokens, token)
         token = ""
       end
-    elseif string.find(char, "[%(%)%$:%?]") and not quoted then
+    elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
       if token ~= "" then
         table.insert(tokens, token)
         token = ""
