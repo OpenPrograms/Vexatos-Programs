@@ -101,9 +101,6 @@ local function tokenize(value)
      i = i + 1
     end
   end
-  local f = io.open("/testdump.txt", "w")
-  f:write(table.concat(tokens, "\n"))
-  f:close()
   return tokens
 end
 
