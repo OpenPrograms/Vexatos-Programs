@@ -102,7 +102,7 @@ end
 -------------------------------------------------------------------------------
 
 local varPattern = "[%a_][%w_]*"
-local lambdaParPattern = "[("..varPattern.."),]+"
+local lambdaParPattern = "("..varPattern..")((%s*,%s*)("..varPattern.."))*"
 
 local function perror(msg, lvl)
   msg = msg or "unknown error"
@@ -114,21 +114,21 @@ local function bracket(tChunk, plus, minus, step, result, incr, start)
   local curr = tChunk[step]
   local brackets = start or 1
   while brackets > 0 do
-      if curr:find(plus, 1, true) then
-        brackets = brackets + 1
+    if curr:find(plus, 1, true) then
+      brackets = brackets + 1
+    end
+    if curr:find(minus, 1, true) then
+      brackets = brackets - 1
+    end
+    if brackets > 0 then
+      if incr > 0 then
+        result = result.." "..curr
+      else
+        result = curr.." "..result
       end
-      if curr:find(minus, 1, true) then
-        brackets = brackets - 1
-      end
-      if brackets > 0 then
-        if incr > 0 then
-          result = result.." "..curr
-        else
-          result = curr.." "..result
-        end
-        step = step + incr
-        curr = tChunk[step]
-      end
+      step = step + incr
+      curr = tChunk[step]
+    end
   end
   return result, step
 end
@@ -155,7 +155,11 @@ local function findLambda(tChunk, i, part)
   if not funcode:find("return", 1, true) then
     funcode = "return "..funcode
   end
-  local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
+  inst = table.concat(params, ",")
+  if not inst:find("^"..lambdaParPattern .. "$") then
+    perror("invalid lambda at index "..i..": invalid parameters")
+  end
+  local func = "_G._selene._newFunc(function("..inst..") "..funcode.." end, "..tostring(#params)..")"
   for i = start, stop do
     table.remove(tChunk, start)
   end
@@ -211,13 +215,73 @@ local function findTernary(tChunk, i, part)
   return true
 end
 
+local function findForeach(tChunk, i, part)
+  local start = nil
+  local vars = ""
+  local step = i - 1
+  while not start do
+    if tChunk[step] == "for" then
+      start = step + 1
+    else
+      vars = tChunk[step] .. " " .. vars
+      step = step - 1
+    end
+  end
+  local params = split(vars, ",")
+  step = i + 1
+  local stop = nil
+  vars = ""
+  while not stop do
+    if tChunk[step] == "do" then
+      stop = step - 1
+    else
+      vars = vars .. " " .. tChunk[step]
+      step = step + 1
+    end
+  end
+  local p = table.concat(params, ",")
+  if not p:find("^"..lambdaParPattern .. "$") then
+    return false
+  end
+  local func = p .. "in mpairs("..vars..")"
+  for i = start, stop do
+    table.remove(tChunk, start)
+  end
+  table.insert(tChunk, start, func)
+  return true
+end
+
+--[[local types = {
+  ["nil"] = true,
+  ["boolean"] = true,
+  ["string"] = true,
+  ["number"] = true,
+  ["table"] = true,
+  ["function"] = true,
+  ["thread"] = true,
+  ["userdata"] = true,
+  ["list"] = true,
+  ["map"] = true,
+  ["stringlist"] = true,
+}
+
+local function findMatch(tChunk, i, part)
+  if not tChunk[i + 1]:find("(", 1, true) then
+    perror("invalid match at index "..i..": no brackets () found")
+  end
+  local start = i
+  local step = i + 2
+  local cases, step = bracket(tChunk, "(", ")", step, "", 1)
+  local stop = step
+end]]
+
 local keywords = {
   ["->"   ] = findLambda,
   ["=>"   ] = findLambda,
-  --["<-"   ] = function() end,
+  ["<-"   ] = findForeach,
   ["?"    ] = findTernary,
   [":"    ] = findSelfCall,
-  --["match"] = function() end,
+  --["match"] = findMatch,
   ["$"    ] = findDollars
 }
 

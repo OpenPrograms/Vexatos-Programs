@@ -11,6 +11,7 @@ This is a Lua library I made for more convenient functional programming. I provi
     - [Lambdas](#lambdas)
       - [Utility functions for wrapped and normal functions](#utility-functions-for-wrapped-and-normal-functions)
     - [Ternary Operators](#ternary-operators)
+    - [Foreach](#foreach)
   - [Functions](#functions)
     - [table](#table)
     - [string](#string)
@@ -80,6 +81,15 @@ local a = 5
 local c = (a >= 5 ? 1 : -1) -- c should be 1 now.
 ```
 If `<condition>` is true, the first case will be returned, otherwise the second one will.
+###Foreach
+Selene supports alternative syntax for foreach:
+```lua
+local b = {"one", "two", "three"}
+for i,j <- b do
+  print(i, j)
+end
+```
+If the table can be iterated through with ipairs (i.e. if every key in the table is a number valid for `ipairs`), it will choose that, otherwise it will choose `pairs`.
 
 #Functions
 This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native tables.

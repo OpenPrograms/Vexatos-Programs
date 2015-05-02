@@ -64,7 +64,7 @@ end
 local function isList(t)
   checkArg(1, t, "table")
   local tp = tblType(t)
-  if tp == "list" then
+  if tp == "list" or tp == "stringlist" then
     return true
   elseif tp == "table" then
     for i in pairs(newObj._tbl) do
@@ -87,8 +87,7 @@ local function checkList(n, t)
 end
 
 local function mpairs(obj)
-  local t = tblType(obj)
-  if t == "list" or t == "stringlist" then
+  if type(obj) == "table" and isList(obj) then
     return ipairs(obj._tbl)
   else
     return pairs(obj._tbl)
