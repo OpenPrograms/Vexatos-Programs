@@ -335,7 +335,7 @@ local function tbl_filter(self, f)
   if parCnt == 1 then
     for i, j in mpairs(self) do
       if f(j) then
-        insert(filtered, j)
+        insert(filtered, i, j)
       end
     end
   else
@@ -362,8 +362,7 @@ local function tbl_drop(self, amt)
     for i = amt + 1, #self do
       insert(dropped, self._tbl[i])
     end
-    self._tbl = dropped
-    return self
+    return newListOrMap(dropped)
   end
 end
 
@@ -392,8 +391,7 @@ local function tbl_dropwhile(self, f)
   for i = curr, #self do
     insert(dropped, self._tbl[i])
   end
-  self._tbl = dropped
-  return self
+  return newListOrMap(dropped)
 end
 
 --inverts the list
@@ -447,7 +445,7 @@ local function rawflatten(self)
   checkArg(1, self, "table")
   local flattened = {}
   for i,j in ipairs(self) do
-    if tblType(j) == "table" then
+    if tblType(j) == "table" and isList(j) then
       for k, v in ipairs(j) do
         if v ~= nil then
           table.insert(flattened, v)
@@ -462,8 +460,7 @@ end
 
 local function tbl_flatten(self)
   checkType(1, self, "list")
-  self._tbl = rawflatten(self._tbl)
-  return self
+  return return newListOrMap(rawflatten(self._tbl))
 end
 
 --------
@@ -558,7 +555,7 @@ local function str_filter(self, f)
       end
     end
   end
-  return newListOrMap(filtered)
+  return newStringList(filtered)
 end
 
 -- Removes the first amt characters of the srting, returns a string
