@@ -251,7 +251,7 @@ local function findForeach(tChunk, i, part)
       return false
     end
   end
-  local func = table.concat(params, ",") .. "in mpairs("..vars..")"
+  local func = table.concat(params, ",") .. " in mpairs("..vars..")"
   for i = start, stop do
     table.remove(tChunk, start)
   end
