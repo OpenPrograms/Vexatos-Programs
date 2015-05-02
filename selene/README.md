@@ -38,7 +38,7 @@ s = tostring(s) -- This is a way of getting back strings from wrapped strings.
 ```
 A note about wrapped strings: If you call `pairs` or `ipairs` with a wrapped string as a parameter, it will iterate through every character in the string.
 ####What you can do with wrapped tables or strings
-See [the functions documentation](the-functions.md) for methods may call on wrapped tables or strings.
+See [the functions documentation](README.md#Functions) for methods may call on wrapped tables or strings.
 ####Utility functions for wrapped tables
  - `ltype(t: anything):string` This functions works just like `type`, just that it, if it finds a wrapped table, may return `"map"`, `"list"` or `"stringlist"`.
  - `checkType(n:number, t:anything, types:string...)` This function errors when `t` does not match any of the specified types of wrapped tables. `n` is the index of the parameter, used for a more descriptive error message. if no type is specified, it will error if `t` is not a wrapped table.
@@ -68,7 +68,7 @@ local c = (a >= 5 ? 1 : -1) -- c should be 1 now.
 If `<condition>` is true, the first case will be returned, otherwise the second one will.
 
 #Functions
-This is a list of the functions available on wrapped tables or strings as specified [here](syntax.md) asll well as functions added to native tables.
+This is a list of the functions available on wrapped tables or strings as specified [here](README.md#Syntax) asll well as functions added to native tables.
 ###table
 The native `table` library got two new functions:
  - `table.shallowcopy(t:table):table` This will return a copy `t` that contains every entry `t` did contain.
