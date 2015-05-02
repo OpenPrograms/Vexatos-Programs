@@ -2,6 +2,20 @@ Selene
 ======
 
 This is a Lua library I made for more convenient functional programming. I provides special syntax as well as convenient functions on tables and strings.
+###Table of contents
+  - [Syntax](#syntax)
+    - [Smart self-calling](#smart-self-calling)
+    - [Wrapped tables](#wrapped-tables)
+      - [What you can do with wrapped tables or strings](#what-you-can-do-with-wrapped-tables-or-strings)
+      - [Utility functions for wrapped tables](#utility-functions-for-wrapped-tables)
+    - [Lambdas](#lambdas)
+      - [Utility functions for wrapped and normal functions](#utility-functions-for-wrapped-and-normal-functions)
+    - [Ternary Operators](#ternary-operators)
+  - [Functions](#functions)
+    - [table](#table)
+    - [string](#string)
+    - [Wrapped tables](#wrapped-tables-1)
+    - [Wrapped strings](#wrapped-strings)
 
 #Syntax
 This is a list of the special syntax available in Selene.
@@ -38,7 +52,7 @@ s = tostring(s) -- This is a way of getting back strings from wrapped strings.
 ```
 A note about wrapped strings: If you call `pairs` or `ipairs` with a wrapped string as a parameter, it will iterate through every character in the string.
 ####What you can do with wrapped tables or strings
-See [the functions documentation](README.md#functions) for methods may call on wrapped tables or strings.
+See [the functions documentation](#functions) for methods may call on wrapped tables or strings.
 ####Utility functions for wrapped tables
  - `ltype(t: anything):string` This functions works just like `type`, just that it, if it finds a wrapped table, may return `"map"`, `"list"` or `"stringlist"`.
  - `checkType(n:number, t:anything, types:string...)` This function errors when `t` does not match any of the specified types of wrapped tables. `n` is the index of the parameter, used for a more descriptive error message. if no type is specified, it will error if `t` is not a wrapped table.
@@ -68,7 +82,7 @@ local c = (a >= 5 ? 1 : -1) -- c should be 1 now.
 If `<condition>` is true, the first case will be returned, otherwise the second one will.
 
 #Functions
-This is a list of the functions available on wrapped tables or strings as specified [here](README.md#syntax) as well as functions added to native tables.
+This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native tables.
 ###table
 The native `table` library got two new functions:
  - `table.shallowcopy(t:table):table` This will return a copy `t` that contains every entry `t` did contain.
