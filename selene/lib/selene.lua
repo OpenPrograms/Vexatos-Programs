@@ -672,7 +672,7 @@ local function bfor(one, two, three)
   return bit32.bor(bit32.band(bit32.bnot(one), two, three), bit32.band(one, bit32.bnot(two), three), bit32.band(one, two, bit32.bnot(three)))
 end
 
-local function nfor(one, two three)
+local function nfor(one, two, three)
   return (not one and two and three) or (one and not two and three) or (one and two and not three)
 end
 
