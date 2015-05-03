@@ -729,7 +729,7 @@ local function load()
   end
 
   _G.bit32.bfor = bfor
-  _G.bit32.for = nfor
+  _G.bit32.nfor = nfor
 
   _Table.concat = tbl_concat
   _Table.foreach = tbl_foreach
@@ -815,7 +815,7 @@ local function unload()
   _G.table.flatten = nil
 
   _G.bit32.bfor = nil
-  _G.bit32.for = nil
+  _G.bit32.nfor = nil
 end
 
 if not _G._selene or not _G._selene.initDone then

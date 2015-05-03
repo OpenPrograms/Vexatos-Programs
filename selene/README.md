@@ -97,7 +97,7 @@ This is a list of the functions available on wrapped tables or strings as specif
 ###bit32
 Firstly, Selene adds two convenient functions to the `bit32` library, called fish-or or `for`:
  - `bit32.bfor(n1:number, n2:number, n3:number):number` This functions returns the bitwise fish-or of its operands. A bit will be 1 if two out of three of the operands' bits are 1.
- - `bit32.for(n1:anything, n2:anything, n3:anything):boolean` This returns `true` if two out of three of the operands are not `nil` and not `false`
+ - `bit32.nfor(n1:anything, n2:anything, n3:anything):boolean` This returns `true` if two out of three of the operands are not `nil` and not `false`
 
 ###table
 The native `table` library got two new functions:
