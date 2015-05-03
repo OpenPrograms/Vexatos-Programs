@@ -664,6 +664,18 @@ local function str_split(self, sep)
   return newList(t)
 end
 
+-- The famous and infamous fish-or
+local function bfor(one, two, three)
+  checkArg(1, one, "number")
+  checkArg(2, two, "number")
+  checkArg(3, three, "number")
+  return bit32.bor(bit32.band(bit32.bnot(one), two, three), bit32.band(one, bit32.bnot(two), three), bit32.band(one, two, bit32.bnot(three)))
+end
+
+local function nfor(one, two three)
+  return (not one and two and three) or (one and not two and three) or (one and two and not three)
+end
+
 --------
 -- Parsing
 --------
@@ -715,6 +727,9 @@ local function load()
     checkList(1, tbl)
     return rawflatten(tbl)
   end
+
+  _G.bit32.bfor = bfor
+  _G.bit32.for = nfor
 
   _Table.concat = tbl_concat
   _Table.foreach = tbl_foreach
@@ -798,6 +813,9 @@ local function unload()
   
   _G.table.shallowcopy = nil
   _G.table.flatten = nil
+
+  _G.bit32.bfor = nil
+  _G.bit32.for = nil
 end
 
 if not _G._selene or not _G._selene.initDone then

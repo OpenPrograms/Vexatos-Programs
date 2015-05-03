@@ -13,6 +13,7 @@ This is a Lua library I made for more convenient functional programming. I provi
     - [Ternary Operators](#ternary-operators)
     - [Foreach](#foreach)
   - [Functions](#functions)
+    - [bit32](#bit32)
     - [table](#table)
     - [string](#string)
     - [Wrapped tables](#wrapped-tables-1)
@@ -92,7 +93,11 @@ end
 If the table can be iterated through with `ipairs` (i.e. if every key in the table is a number valid for `ipairs`), it will choose that, otherwise it will choose `pairs`.
 
 #Functions
-This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native tables.
+This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native libraries.
+###bit32
+Firstly, Selene adds two convenient functions to the `bit32` library, called fish-or or `for`:
+ - `bit32.bfor(n1:number, n2:number, n3:number):number` This functions returns the bitwise fish-or of its operands. A bit will be 1 if two out of three of the operands' bits are 1.
+ - `bit32.for(n1:anything, n2:anything, n3:anything):boolean` This returns `true` if two out of three of the operands are not `nil` and not `false`
 ###table
 The native `table` library got two new functions:
  - `table.shallowcopy(t:table):table` This will return a copy `t` that contains every entry `t` did contain.
