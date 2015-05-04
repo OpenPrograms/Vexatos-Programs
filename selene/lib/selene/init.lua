@@ -77,7 +77,7 @@ local function isList(t)
   elseif tp == "map" then
     return false
   elseif tp == "table" then
-    for i in pairs(t._tbl) do
+    for i in pairs(t) do
       if not type(i) == "number" then
         return false
       elseif i < 1 then
@@ -111,9 +111,9 @@ end
 
 local function mpairs(obj)
   if type(obj) == "table" and isList(obj) then
-    return ipairs(obj._tbl)
+    return ipairs(obj)
   else
-    return pairs(obj._tbl)
+    return pairs(obj)
   end
 end
 
