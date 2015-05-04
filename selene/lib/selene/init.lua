@@ -504,9 +504,10 @@ end
 
 local function tbl_zip(self, other)
   checkType(1, self, "list", "stringlist")
-  checkType(2, other, "list", "stringlist", "function")
+  checkType(2, other, "list", "stringlist", "function", "table")
   local zipped = {}
-  if tblType(other) == "function" then
+  local tp = tblType(other)
+  if tp == "function" then
     local parCnt = parCount(other, 2)
     if parCnt == 1 then
       for i,j in mpairs(self) do
@@ -516,6 +517,11 @@ local function tbl_zip(self, other)
       for i,j in mpairs(self) do
         table.insert(zipped, {j, f(i, j)})
       end
+    end
+  elseif tp == "table" then checkList(2, other)
+    assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
+    for i in mpairs(self) do
+      table.insert(zipped, {self._tbl[i], other[i]})
     end
   else
     assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
