@@ -104,6 +104,7 @@ The native `table` library got two new functions:
  - `table.shallowcopy(t:table):table` This will return a copy `t` that contains every entry `t` did contain.
  - `table.flatten(t:table):table` This will collapse one level of inner tables and merge their entries into `t`. `t` need to be a valid list (every key in the table has to be a number valid for `ipairs`). Inner tables will only get merged if they are lists as well, tables with invalid keys will stay the way they are in the table.
  - `table.range(start:number, stop:number [, step:number]):table` This will create a range of numbers ranging from `start` to `stop`, with a step size of `step` or 1.
+ - `table.zipped(t1:table, t2:table):table` This will merge two tables into one if both have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`
 
 ###string
 These functions will not work directly called on a string, i.e. `string.drop("Hello", 2)` will work but `("Hello"):drop(2)` will not. For that, use wrapped strings.
@@ -131,6 +132,7 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$l():dropwhile(function):list` This works exactly like `string.dropwhile`, just that it will iterate through each key/value pair in the table and will return a itself with the dropped entries.
  - `$l():reverse():list` This function will invert the list so that the last entry will be the first one etc.
  - `$l():flatten():list` This works exactly like `table.flatten`.
+ - `$l():zip(other:list or table or function)` This will merge the other table (which has to be an ipairs-valid list) or list into itself if both lists have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`. If `other` is a function or wrapped function, it will call it once per iteration and merge the returned value in the described pattern.
 
 ###Wrapped strings
 Wrapped strings or stringslists can mostly be seen as lists and have all the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`). However, they do not have `concat`, `find` or `flatten`. `drop()` and `dropwhile` will return strings, `filter` will return a stringlist, and they have one extra function:
