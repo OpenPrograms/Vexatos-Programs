@@ -511,7 +511,7 @@ local function tbl_range(start, stop, step)
   step = step or 1
   local nT = {}
   for i = start, stop, step do
-    table.insert(nT, start)
+    table.insert(nT, i)
   end
   return nT
 end
