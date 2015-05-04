@@ -547,7 +547,7 @@ local function tbl_zipped(one, two)
   checkList(2, two)
   local zipped = {}
   assert(#one == #two, "length mismatch in zip: Argument #1 has ".. tostring(#one)..", argument #2 has "..tostring(#two))
-  for i in mpairs(one) do
+  for i in ipairs(one) do
     table.insert(zipped, {one[i], two[i]})
   end
   return zipped
