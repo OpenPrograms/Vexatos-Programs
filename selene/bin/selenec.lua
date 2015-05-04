@@ -80,7 +80,7 @@ if options.r then
     os.exit(false)
   end
 elseif #args == 1 then
-  io.stderr:write("No output file specified. Writting to ./a.lua")
+  io.stdout:write("No output file specified. Writting to ./a.lua")
   writetofile("./a.lua", parsed)
 elseif #args == 2 then
   if args[2] ~= "-" then
