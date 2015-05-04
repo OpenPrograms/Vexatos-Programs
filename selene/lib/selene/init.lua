@@ -89,8 +89,8 @@ local function isList(t)
   return false
 end
 
-local function checkList(n, t)
-  if not isList(t) then
+local function checkList(n, have)
+  if not isList(have) then
     local msg = string.format("[Selene] bad argument #%d (list expected, got %s)", n, have)
     error(msg, 2)
   end
@@ -332,7 +332,7 @@ end
 local function tbl_foreach(self, f)
   checkType(1, self)
   checkFunc(2, f)
-  local parCnt = parCount(f)
+  local parCnt = parCount(f, 2)
   for i, j in mpairs(self) do
     if parCnt == 1 then
       f(j)
@@ -347,7 +347,7 @@ local function tbl_map(self, f)
   checkType(1, self)
   checkFunc(2, f)
   local mapped = {}
-  local parCnt = parCount(f)
+  local parCnt = parCount(f, 2)
   for i, j in mpairs(self) do
     if parCnt == 1 then
       insert(mapped, f(j))
@@ -370,7 +370,7 @@ local function tbl_filter(self, f)
     end
   end
   local filtered = {}
-  local parCnt = parCount(f)
+  local parCnt = parCount(f, 2)
   if parCnt == 1 then
     for i, j in mpairs(self) do
       if f(j) then
@@ -409,7 +409,7 @@ end
 local function tbl_dropwhile(self, f)
   checkType(1, self, "list", "stringlist")
   checkFunc(2, f)
-  local parCnt = parCount(f)
+  local parCnt = parCount(f, 2)
   local dropped = {}
   local curr = 1
   if parCnt == 1 then
@@ -464,7 +464,7 @@ end
 local function tbl_find(self, f)
   checkType(1, self)
   checkFunc(2, f)
-  local parCnt = parCount(f)
+  local parCnt = parCount(f, 2)
   if parCnt == 1 then
     for i,j in mpairs(self) do
       if f(j) then
@@ -502,6 +502,30 @@ local function tbl_flatten(self)
   return newListOrMap(rawflatten(self._tbl))
 end
 
+local function tbl_zip(self, other)
+  checkType(1, self, "list", "stringlist")
+  checkType(2, other, "list", "stringlist", "function")
+  local zipped = {}
+  if tblType(other) == "function" then
+    local parCnt = parCount(other, 2)
+    if parCnt == 1 then
+      for i,j in mpairs(self) do
+        table.insert(zipped, {j, f(j)})
+      end
+    else
+      for i,j in mpairs(self) do
+        table.insert(zipped, {j, f(i, j)})
+      end
+    end
+  else
+    assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
+    for i in mpairs(self) do
+      table.insert(zipped, {self._tbl[i], other._tbl[i]})
+    end
+  end
+  return newList(zipped)
+end
+
 -- for the actual table library
 
 local function tbl_range(start, stop, step)
@@ -514,6 +538,19 @@ local function tbl_range(start, stop, step)
     table.insert(nT, i)
   end
   return nT
+end
+
+local function tbl_zipped(one, two)
+  checkType(1, one, "table")
+  checkType(2, two, "table", "function")
+  checkList(1, one)
+  checkList(2, two)
+  local zipped = {}
+  assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
+  for i in mpairs(self) do
+    table.insert(zipped, {self._tbl[i], other._tbl[i]})
+  end
+  return zipped
 end
 
 --------
@@ -742,6 +779,7 @@ local function load()
     return rawflatten(tbl)
   end
   _G.table.range = tbl_range
+  _G.table.zipped = tbl_zipped
 
   _G.bit32.bfor = bfor
   _G.bit32.nfor = nfor
@@ -757,6 +795,7 @@ local function load()
   _Table.foldright = tbl_foldright
   _Table.find = tbl_find
   _Table.flatten = tbl_flatten
+  _Table.zip = tbl_zip
 
   _Table.shallowcopy = function(self)
     checkType(1, self)
@@ -829,6 +868,7 @@ local function unload()
   _G.table.shallowcopy = nil
   _G.table.flatten = nil
   _G.table.range = nil
+  _G.table.zipped = nil
 
   _G.bit32.bfor = nil
   _G.bit32.nfor = nil
