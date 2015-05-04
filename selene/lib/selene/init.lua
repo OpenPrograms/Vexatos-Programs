@@ -502,6 +502,17 @@ local function tbl_flatten(self)
   return newListOrMap(rawflatten(self._tbl))
 end
 
+-- for the actual table library
+
+local function tbl_range(start, stop, step)
+  step = step or 1
+  local nT = {}
+  for i = start, stop, step do
+    table.insert(nT, start)
+  end
+  return nT
+end
+
 --------
 -- Bulk data operations on stringlists
 --------
@@ -727,6 +738,7 @@ local function load()
     checkList(1, tbl)
     return rawflatten(tbl)
   end
+  _G.table.range = tbl_range
 
   _G.bit32.bfor = bfor
   _G.bit32.nfor = nfor
@@ -813,6 +825,7 @@ local function unload()
   
   _G.table.shallowcopy = nil
   _G.table.flatten = nil
+  _G.table.range = nil
 
   _G.bit32.bfor = nil
   _G.bit32.nfor = nil
