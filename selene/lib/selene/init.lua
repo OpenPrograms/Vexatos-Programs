@@ -505,6 +505,9 @@ end
 -- for the actual table library
 
 local function tbl_range(start, stop, step)
+  checkArg(1, start, "number")
+  checkArg(2, stop, "number")
+  checkArg(3, step, "number", "nil")
   step = step or 1
   local nT = {}
   for i = start, stop, step do
