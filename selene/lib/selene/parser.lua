@@ -25,6 +25,7 @@ end
 
 local function tokenize(value)
   checkArg(1, value, "string")
+  value = value.."\n"
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
@@ -252,11 +253,6 @@ local function findForeach(tChunk, i, part)
   end
   vars = split(table.concat(vars), ",")
   for _, p in ipairs(params) do
-    if not p:find("^"..varPattern .. "$") then
-      return false
-    end
-  end
-  for _, p in ipairs(vars) do
     if not p:find("^"..varPattern .. "$") then
       return false
     end
