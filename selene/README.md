@@ -116,7 +116,7 @@ These functions will not work directly called on a string, i.e. `string.drop("He
  - `string.dropwhile(s:string, f:function):string` This function will remove the first character of the string as long as `f` returns `true` on that character (or on the index and the character).
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value `f` returns will then be assigned to `m` for the next iteration.
  - `string.foldright(s:string, m:anything, f:function):anything` Exactly like `string.foldleft`, just that it starts iterating at the end of the string.
- - `string.split(s:string, sep:string):list` This function splits the string whenever it encounters the specified separator, returning a list of every part of the string.
+ - `string.split(s:string, sep:string or nil):list` This function splits the string whenever it encounters the specified separator, returning a list of every part of the string.
 
 ###Wrapped tables
 These are the functions you can call on wrapped tables. `$()` represents a wrapped list or map, `$l()` represents a list.
@@ -136,4 +136,4 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
 
 ###Wrapped strings
 Wrapped strings or stringslists can mostly be seen as lists and have all the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`). However, they do not have `concat`, `find` or `flatten`. `drop()` and `dropwhile` will return strings, `filter` will return a stringlist, and they have one extra function:
- - `$s():split(sep:string):list` This works exactly like `string.split`. 
+ - `$s():split(sep:string or nil):list` This works exactly like `string.split`. 
