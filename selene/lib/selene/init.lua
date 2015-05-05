@@ -711,10 +711,17 @@ end
 -- Splits the string, returns a list
 local function str_split(self, sep)
   checkArg(1, self, "string")
-  checkArg(2, sep, "string")
+  checkArg(2, sep, "string", "nil")
   local t = {}
   local i = 1
-  for str in self:gmatch("([^"..sep.."]+)") do
+  sep = sep or ""
+  local p
+  if #sep <= 0 then
+    p = "."
+  else
+    p = "([^"..sep.."]+)"
+  end
+  for str in self:gmatch(p) do
     t[i] = str
     i = i + 1
   end
