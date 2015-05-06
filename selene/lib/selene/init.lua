@@ -753,6 +753,7 @@ end
 -- Adding to global variables
 --------
 
+local VERSION = "1.0.0"
 local oldload
 
 local function load()
@@ -770,6 +771,7 @@ local function load()
   _G._selene._newString = newString
   _G._selene._newList = newList
   _G._selene._newFunc = newFunc
+  _G._selene._VERSION = VERSION
   _G.ltype = tblType
   _G.checkType = checkType
   _G.checkFunc = checkFunc
