@@ -753,7 +753,7 @@ end
 -- Adding to global variables
 --------
 
-local VERSION = "1.0.0"
+local VERSION = "Selene 1.0.0"
 local oldload
 
 local function load()
