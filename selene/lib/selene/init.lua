@@ -96,7 +96,7 @@ local function checkList(n, have)
   end
 end
 
-local function insert(tbl, key, value, fuzzyList)
+local function insert(tbl, fuzzyList, key, value)
   fuzzyList = fuzzyList or false
   if value then
     if fuzzyList then
@@ -350,9 +350,9 @@ local function tbl_map(self, f)
   local parCnt = parCount(f, 2)
   for i, j in mpairs(self) do
     if parCnt == 1 then
-      insert(mapped, f(j))
+      insert(mapped, false, f(j))
     else
-      insert(mapped, f(i, j))
+      insert(mapped, false, f(i, j))
     end
   end
   return newListOrMap(mapped)
@@ -364,8 +364,7 @@ local function tbl_filter(self, f)
   checkFunc(2, f)
   local list = false
   do
-    local tp = tblType(self)
-    if tp == "list" then
+    if tblType(self) == "list" then
       list = true
     end
   end
@@ -374,13 +373,13 @@ local function tbl_filter(self, f)
   if parCnt == 1 then
     for i, j in mpairs(self) do
       if f(j) then
-        insert(filtered, i, j, list)
+        insert(filtered, list, i, j)
       end
     end
   else
     for i, j in mpairs(self) do
       if f(i, j) then
-        insert(filtered, i, j, list)
+        insert(filtered, list, i, j)
       end
     end
   end
@@ -399,7 +398,7 @@ local function tbl_drop(self, amt)
   else
     local dropped = {}
     for i = amt + 1, #self do
-      insert(dropped, self._tbl[i])
+      insert(dropped, false, self._tbl[i])
     end
     return newListOrMap(dropped)
   end
@@ -428,7 +427,7 @@ local function tbl_dropwhile(self, f)
     end
   end
   for i = curr, #self do
-    insert(dropped, self._tbl[i])
+    insert(dropped, false, self._tbl[i])
   end
   return newListOrMap(dropped)
 end
@@ -571,13 +570,13 @@ local function strl_filter(self, f)
   if parCnt == 1 then
     for i, j in mpairs(self) do
       if f(j) then
-        insert(filtered, j)
+        insert(filtered, false, j)
       end
     end
   else
     for i, j in mpairs(self) do
       if f(i, j) then
-        insert(filtered, i, j)
+        insert(filtered, false, i, j)
       end
     end
   end
@@ -622,9 +621,9 @@ local function str_map(self, f)
   local parCnt = parCount(f)
   for i = 1, #self do
     if parCnt == 1 then
-      insert(mapped, f(self:substring(i,i)))
+      insert(mapped, false, f(self:substring(i,i)))
     else
-      insert(mapped, f(i, self:substring(i,i)))
+      insert(mapped, false, f(i, self:substring(i,i)))
     end
   end
   return newListOrMap(mapped)
@@ -640,14 +639,14 @@ local function str_filter(self, f)
     for i = 1, #self do
       local j = self:substring(i,i)
       if f(j) then
-        insert(filtered, j)
+        insert(filtered, false, j)
       end
     end
   else
     for i = 1, #self do
       local j = self:substring(i,i)
       if f(i, j) then
-        insert(filtered, i, j)
+        insert(filtered, false, i, j)
       end
     end
   end
