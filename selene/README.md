@@ -22,7 +22,7 @@ This is a Lua library I made for more convenient functional programming. I provi
 #Syntax
 This is a list of the special syntax available in Selene.
 ###Smart self-calling
-A tweak that makes variables calling a function with no parameters on themselves more convenient.
+A tweak that makes method calls with no parameters more convenient.
 Basically, it allows doing this
 ```lua
 local s = "Hello World"
