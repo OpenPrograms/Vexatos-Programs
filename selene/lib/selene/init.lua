@@ -78,7 +78,7 @@ local function isList(t)
     return false
   elseif tp == "table" then
     for i in pairs(t) do
-      if not type(i) == "number" then
+      if type(i) ~= "number" then
         return false
       elseif i < 1 then
         return false
@@ -283,7 +283,7 @@ end
 local function newList(t)
   local newObj = new(t)
   for i in pairs(newObj._tbl) do
-    if not type(i) == "number" then
+    if type(i) ~= "number" then
       error("[Selene] could not create list: bad table key: "..i.." is not a number", 2)
     elseif i < 1 then
       error("[Selene] could not create list: bad table key: "..i.." is below 1", 2)
@@ -296,7 +296,7 @@ end
 local function newListOrMap(t)
   local newObj = new(t)
   for i in pairs(newObj._tbl) do
-    if not type(i) == "number" then
+    if type(i) ~= "number" then
       return newObj
     elseif i < 1 then
       return newObj
