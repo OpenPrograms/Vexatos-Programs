@@ -151,11 +151,11 @@ local function tryAddReturn(code)
     error(msg)
   end
   for _, part in ipairs(tChunk) do
-    if part:matches("^return$") then
+    if part:find("^return$") then
       return code
     end
   end
-  return "return "..funcode
+  return "return "..code
 end
 
 local function findLambda(tChunk, i, part)
