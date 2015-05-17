@@ -13,11 +13,6 @@ local selenep = {}
 -------------------------------------------------------------------------------
 -- Stolen from text.lua
 
-local endQuote = {
-  ["'"] = "'",
-  ['"'] = '"',
-}
-
 local function trim(value) -- from http://lua-users.org/wiki/StringTrim
   local from = string.match(value, "^%s*()")
   return from > #value and "" or string.match(value, ".*%S", from)
@@ -149,6 +144,20 @@ local function split(self, sep)
   return t
 end
 
+local function tryAddReturn(code)
+  local tChunk, msg = tokenize(code)
+  chunk = nil
+  if not tChunk then
+    error(msg)
+  end
+  for _, part in ipairs(tChunk) do
+    if part:matches("^return$") then
+      return code
+    end
+  end
+  return "return "..funcode
+end
+
 local function findLambda(tChunk, i, part)
   local params = {}
   local step = i - 1
@@ -160,6 +169,8 @@ local function findLambda(tChunk, i, part)
   local stop = step
   if not funcode:find("return", 1, true) then
     funcode = "return "..funcode
+  else
+    funcode = tryAddReturn(funcode)
   end
   for _, s in ipairs(params) do
     if not s:find("^"..varPattern .. "$") then
