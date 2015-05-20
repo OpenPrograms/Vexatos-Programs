@@ -1,7 +1,7 @@
 Selene
 ======
 
-This is a Lua library I made for more convenient functional programming. I provides special syntax as well as convenient functions on tables and strings.
+This is a Lua library I made for more convenient functional programming. It provides special syntax as well as convenient functions on tables and strings.
 ###Table of contents
   - [Syntax](#syntax)
     - [Smart self-calling](#smart-self-calling)
