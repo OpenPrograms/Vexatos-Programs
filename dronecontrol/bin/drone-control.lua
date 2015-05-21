@@ -42,7 +42,7 @@ local function getMessage(evt, laddr, addr, port, dist, tp, ...)
   return evt, laddr, addr, port, dist, tp, table.pack(...)
 end
 
-local psize = modem.maxPacketSize() - 2
+local psize = modem.maxPacketSize() - 12
 
 while true do
   local evt, _, addr, _, _, tp, msg = getMessage(event.pull(5, "modem_message"))
@@ -58,10 +58,10 @@ while true do
           code = code:sub(psize + 1)
         end
         for i,p in ipairs(packs) do
-          modem.send(addr, 54542, "codepart", p)
+          modem.send(addr, 54541, "codepart", p)
           os.sleep(0.2)
         end
-        modem.send(addr, 54542, "codepart", "done")
+        modem.send(addr, 54541, "codepart", "done")
       end
     else
       print(addr, tp, table.unpack(msg))

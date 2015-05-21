@@ -1,7 +1,7 @@
 local addr = component.list("modem")()
 local m = component.proxy(addr)
 local d=component.proxy(component.list('drone')())
-m.open(54542)
+m.open(54541)
 local function send(...)
   local args=table.pack(...)
   pcall(function() m.broadcast(54542, "fromdrone", table.unpack(args)) end)
