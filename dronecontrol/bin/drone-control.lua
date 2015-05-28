@@ -19,7 +19,7 @@ modem.open(54542)
 
 local lookup
 do
-  local path = "/etc/dronecontrol.cfg"
+  local path = "/etc/drone-control.cfg"
   local file,msg = io.open(path,"rb")
   if not file then
     io.stderr:write("Error while trying to read file at "..path..": "..msg)
@@ -35,7 +35,18 @@ do
 end
 
 local function findCode(addr)
-  if lookup[addr] then return loadfile(lookup[addr]) else return nil end
+  if lookup[addr] then
+    local file,msg = io.open(lookup[addr],"rb")
+    if not file then
+      io.stderr:write("Error while trying to read file at "..lookup[addr]..": "..msg)
+      return nil
+    end
+    local code = file:read("*a")
+    file:close()
+    return code
+  else
+    return nil
+  end
 end
 
 local function getMessage(evt, laddr, addr, port, dist, tp, ...)
@@ -48,6 +59,7 @@ while true do
   local evt, _, addr, _, _, tp, msg = getMessage(event.pull(5, "modem_message"))
 
   if tp and tp == "fromdrone" then
+    print(addr, tp, table.unpack(msg))
     if #msg >= 1 and msg[1] == "coderequest" then
       local packs = {}
       local code = findCode(addr)
@@ -63,8 +75,6 @@ while true do
         end
         modem.send(addr, 54541, "codepart", "done")
       end
-    else
-      print(addr, tp, table.unpack(msg))
     end
   end
 end

@@ -8,9 +8,9 @@ local function send(...)
 end
 
 local function wait()
+  local code = ""
   while true do
     local evt,_,_,_,_, p, cmd = computer.pullSignal(5)
-    local code = ""
     if evt == nil then
       send("coderequest")
     elseif evt=="modem_message" and p == "codepart" then
