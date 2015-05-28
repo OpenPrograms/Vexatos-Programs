@@ -1,0 +1,9 @@
+{
+    label = "Glowstoned Glass Block",
+    tooltip = "Version 1\nThere is Glowstone inside!\nAdd more glowstone dust to increase light level",
+    lightLevel = 15,
+    shapes = {
+      {0,0,0,16,16,16,texture="glass"},
+      {6,6,6,10,10,10,texture="glowstone"},
+    }
+}
