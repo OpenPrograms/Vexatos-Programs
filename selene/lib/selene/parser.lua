@@ -382,7 +382,7 @@ local function parse(chunk, stripcomments)
       end
     end
   end
-  return table.concat(tChunk, "\n")
+  return concatWithLines(tChunk, lines)
 end
 
 function selenep.parse(chunk)
