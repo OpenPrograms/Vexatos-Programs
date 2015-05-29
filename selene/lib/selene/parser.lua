@@ -20,7 +20,8 @@ end
 
 local function tokenize(value)
   checkArg(1, value, "string")
-  value = value.."\n"
+  if not value:find("\n$") then value = value.."\n" end
+  local lines, currentlinecount = {}, 0
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
@@ -35,12 +36,16 @@ local function tokenize(value)
       quoted = false
       if token ~= "" then
         table.insert(tokens, token)
+        currentlinecount = currentlinecount + 1
         token = ""
       end
+      table.insert(lines, currentlinecount)
+      currentlinecount = 0
     elseif char == "]" and quoted == "--[[" and string.find(token, "%]$") then
       quoted = false
       if token ~= "" then
         table.insert(tokens, token..char)
+        currentlinecount = currentlinecount + 1
         token = ""
       end
     elseif char == "[" and quoted == "--" and string.find(token, "%-%-%[$") then
@@ -68,22 +73,29 @@ local function tokenize(value)
         table.insert(tokens, token)
         token = ""
       end
+      if char == "\n" then
+        table.insert(lines, currentlinecount)
+        currentlinecount = 0
+      end
     elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
       if token ~= "" then
         table.insert(tokens, token)
+        currentlinecount = currentlinecount + 1
         token = ""
       end
       table.insert(tokens, char)
+      currentlinecount = currentlinecount + 1
     elseif string.find(char, "[%->]") and string.find(token, "[%-=<]$") and not quoted then
       table.insert(tokens, token:sub(1, #token - 1))
       table.insert(tokens, token:sub(#token)..char)
+      currentlinecount = currentlinecount + 2
       token = ""
     else -- normal char
       token = token .. char
     end
   end
   if quoted then
-    return nil, "unclosed quote at index " .. start
+    return nil, "unclosed quote at index " .. start .. " (line "..#lines..")"
   end
   if token ~= "" then
     table.insert(tokens, token)
@@ -97,7 +109,7 @@ local function tokenize(value)
      i = i + 1
     end
   end
-  return tokens
+  return tokens, lines
 end
 
 -------------------------------------------------------------------------------
@@ -148,7 +160,7 @@ local function tryAddReturn(code)
   local tChunk, msg = tokenize(code)
   chunk = nil
   if not tChunk then
-    error(msg)
+    perror(msg)
   end
   for _, part in ipairs(tChunk) do
     if part:find("^return$") then
@@ -158,7 +170,7 @@ local function tryAddReturn(code)
   return "return "..code
 end
 
-local function findLambda(tChunk, i, part)
+local function findLambda(tChunk, i, part,line)
   local params = {}
   local step = i - 1
   local inst, step = bracket(tChunk, ")", "(", step, "", -1)
@@ -174,7 +186,7 @@ local function findLambda(tChunk, i, part)
   end
   for _, s in ipairs(params) do
     if not s:find("^"..varPattern .. "$") then
-      perror("invalid lambda at index "..i..": invalid parameters")
+      perror("invalid lambda at index "..i.. " (line "..line.."): invalid parameters")
     end
   end
   local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
@@ -185,7 +197,7 @@ local function findLambda(tChunk, i, part)
   return true
 end
 
-local function findDollars(tChunk, i, part)
+local function findDollars(tChunk, i, part, line)
   local curr = tChunk[i + 1]
   if curr:find("^%(") then
     tChunk[i] = "_G._selene._new"
@@ -202,7 +214,7 @@ local function findDollars(tChunk, i, part)
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
   else
-    perror("invalid $ at index "..i)
+    perror("invalid $ at index "..i.. " (line "..line..")")
   end
   return true
 end
@@ -218,7 +230,7 @@ local function findSelfCall(tChunk, i, part)
   return false
 end
 
-local function findTernary(tChunk, i, part)
+local function findTernary(tChunk, i, part, line)
   local step = i - 1
   local cond, step = bracket(tChunk, ")", "(", step, "", -1)
   local start = step
@@ -226,7 +238,7 @@ local function findTernary(tChunk, i, part)
   local case, step = bracket(tChunk, "(", ")", step, "", 1)
   local stop = step
   if not case:find(":", 1, true) then
-    perror("invalid ternary at index "..step..": missing colon ':'")
+    perror("invalid ternary at index "..step.. " (line "..line.."): missing colon ':'")
   end
   local trueCase = case:sub(1, case:find(":", 1, true) - 1)
   local falseCase = case:sub(case:find(":", 1, true) + 1)
@@ -310,19 +322,49 @@ local keywords = {
   ["$"    ] = findDollars
 }
 
+local function concatWithLines(tbl, lines)
+  local chunktbl = {}
+  for _,j in ipairs(lines) do
+    local linetbl = {}
+    for k = 1,j do
+      table.insert(linetbl, tbl[1])
+      table.remove(tbl, 1)
+    end
+    table.insert(chunktbl, table.concat(linetbl, " "))
+  end
+  for _,j in ipairs(tbl) do
+    table.insert(chunktbl, j)
+  end
+  return table.concat(chunktbl, "\n")
+end
+
+local function getCurrentLine(lines, index, start, num)
+  local curr = num or 0
+  start = start or 1
+  for i = start, #lines do
+    if index <= curr + lines[i] then
+      return i, curr
+    end
+    curr = curr + lines[i]
+  end
+  return #lines + 1, 0
+end
+
 local function parse(chunk)
-  local tChunk, msg = tokenize(chunk)
+  local tChunk, lines = tokenize(chunk)
   chunk = nil
   if not tChunk then
-    error(msg)
+    error(lines)
   end
+  local currentline, currentnum = 1, 0
   for i, part in ipairs(tChunk) do
     if keywords[part] then
       if not tChunk[i + 1] then tChunk[i + 1] = "" end
       if not tChunk[i - 1] then tChunk[i - 1] = "" end
-      local result = keywords[part](tChunk, i, part)
+      currentline, currentnum = getCurrentLine(lines, i, currentline)
+      local result = keywords[part](tChunk, i, part, currentline)
       if result then
-        local cnk = table.concat(tChunk, "\n")
+        local cnk = concatWithLines(tChunk, lines)
         tChunk = nil
         return parse(cnk)
       end
