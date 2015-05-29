@@ -11,8 +11,8 @@ end
 local selenep = {}
 
 local function getCurrentLine(lines, index, start, num)
-  local curr = num or 0
-  start = start or 1
+  local curr = --[[num or]] 0
+  start = --[[start or]] 1
   for i = start, #lines do
     if index <= curr + lines[i] then
       return i, curr
