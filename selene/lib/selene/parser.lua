@@ -11,15 +11,15 @@ end
 local selenep = {}
 
 local function getCurrentLine(lines, index, start, num)
-  local curr = --[[num or]] 0
-  start = --[[start or]] 1
+  local curr = num or 0
+  start = start or 1
   for i = start, #lines do
     if index <= curr + lines[i] then
       return i, curr
     end
     curr = curr + lines[i]
   end
-  return #lines + 1, 0
+  return #lines, 0
 end
 
 -------------------------------------------------------------------------------
@@ -93,10 +93,14 @@ local function tokenize(value, stripcomments)
     elseif string.find(char, "%s") and not quoted then -- delimiter
       if token ~= "" then
         table.insert(tokens, token)
+        currentlinecount = currentlinecount + 1
         token = ""
       end
       if char == "\n" then
+        --io.write(unicode.sub(value, i-3, i-1).."\n")
+        --io.write(#tokens.."   "..table.concat(lines, " ").."\n")
         table.insert(lines, currentlinecount)
+        --io.write(#tokens.."   "..table.concat(lines, " ").."\n")
         currentlinecount = 0
       end
     elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
@@ -126,6 +130,8 @@ local function tokenize(value, stripcomments)
   while i <= #tokens do
     if tokens[i] == nil or #tokens[i] <= 0 then
       table.remove(tokens, i)
+      local l = getCurrentLine(lines, i)
+      lines[l] = lines[l] - 1
     else
      tokens[i] = trim(tokens[i])
      i = i + 1
@@ -193,7 +199,7 @@ local function tryAddReturn(code, stripcomments)
   return "return "..code
 end
 
-local function findLambda(tChunk, i, part, line, stripcomments)
+local function findLambda(tChunk, i, part, lines, line, stripcomments)
   local params = {}
   local step = i - 1
   local inst, step = bracket(tChunk, ")", "(", step, "", -1)
@@ -213,14 +219,18 @@ local function findLambda(tChunk, i, part, line, stripcomments)
     end
   end
   local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
+  local l, s = 1, start
   for i = start, stop do
     table.remove(tChunk, start)
+    local l1 =  getCurrentLine(lines, i, l, s)
+    lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, func)
+  lines[line] = lines[line] + 1
   return true
 end
 
-local function findDollars(tChunk, i, part, line)
+local function findDollars(tChunk, i, part, lines, line)
   local curr = tChunk[i + 1]
   if curr:find("^%(") then
     tChunk[i] = "_G._selene._new"
@@ -242,18 +252,25 @@ local function findDollars(tChunk, i, part, line)
   return true
 end
 
-local function findSelfCall(tChunk, i, part)
-  local prev = tChunk[i - 1]
-  local front = tChunk[i + 1]
+local function findSelfCall(tChunk, i, part, lines, line)
   if not tChunk[i + 2] then tChunk[i + 2] = "" end
   if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) then
-    tChunk[i+1] = tChunk[i+1].."()"
+    --tChunk[i+1] = tChunk[i+1].."()"
+    table.insert(tChunk, i+2, ")")
+    table.insert(tChunk, i+2, "(")
+    if line > #lines then
+      perror("unexpected error while parsing self call at index "..step.. " (line "..line.."): invalid line number")
+    end
+    --print("Line lines 1: "..lines[line])
+    lines[line] = lines[line] + 2
+    --print("Line lines 2: "..lines[line])
+    --print(tChunk[i+1], tChunk[i+2], tChunk[i+3])
     return true
   end
   return false
 end
 
-local function findTernary(tChunk, i, part, line)
+local function findTernary(tChunk, i, part, lines, line)
   local step = i - 1
   local cond, step = bracket(tChunk, ")", "(", step, "", -1)
   local start = step
@@ -347,8 +364,7 @@ local keywords = {
 
 local function concatWithLines(tbl, lines)
   local chunktbl = {}
-  for i,j in ipairs(lines) do
-    print(i,j)
+  for _,j in ipairs(lines) do
     local linetbl = {}
     for k = 1,j do
       table.insert(linetbl, tbl[1])
@@ -375,7 +391,7 @@ local function parse(chunk, stripcomments)
       if not tChunk[i + 1] then tChunk[i + 1] = "" end
       if not tChunk[i - 1] then tChunk[i - 1] = "" end
       currentline, currentnum = getCurrentLine(lines, i, currentline)
-      local result = keywords[part](tChunk, i, part, currentline, stripcomments)
+      local result = keywords[part](tChunk, i, part, lines, currentline, stripcomments)
       if result then
         local cnk = concatWithLines(tChunk, lines)
         tChunk = nil
@@ -383,6 +399,10 @@ local function parse(chunk, stripcomments)
       end
     end
   end
+  --[[for i,j in ipairs(lines) do
+    print(i,j)
+  end
+  print(table.concat(tChunk, " "))]]
   return concatWithLines(tChunk, lines)
 end
 
