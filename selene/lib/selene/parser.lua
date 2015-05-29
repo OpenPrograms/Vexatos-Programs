@@ -125,6 +125,8 @@ local function tokenize(value, stripcomments)
   end
   if token ~= "" then
     table.insert(tokens, token)
+    currentlinecount = currentlinecount + 1
+    table.insert(lines, currentlinecount)
   end
   local i = 1
   while i <= #tokens do
@@ -219,10 +221,10 @@ local function findLambda(tChunk, i, part, lines, line, stripcomments)
     end
   end
   local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
-  local l, s = 1, start
+  --local l, s = 1, start
   for i = start, stop do
     table.remove(tChunk, start)
-    local l1 =  getCurrentLine(lines, i, l, s)
+    local l1 =  getCurrentLine(lines, start, 1, 0)
     lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, func)
@@ -237,12 +239,15 @@ local function findDollars(tChunk, i, part, lines, line)
   elseif curr:find("^l") then
     tChunk[i] = "_G._selene._newList"
     table.remove(tChunk, i + 1)
+    lines[line] = lines[line] - 1
   elseif curr:find("^f") then
     tChunk[i] = "_G._selene._newFunc"
     table.remove(tChunk, i + 1)
+    lines[line] = lines[line] - 1
   elseif curr:find("^s") then
     tChunk[i] = "_G._selene._newString"
     table.remove(tChunk, i + 1)
+    lines[line] = lines[line] - 1
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
@@ -255,14 +260,14 @@ end
 local function findSelfCall(tChunk, i, part, lines, line)
   if not tChunk[i + 2] then tChunk[i + 2] = "" end
   if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) then
-    --tChunk[i+1] = tChunk[i+1].."()"
-    table.insert(tChunk, i+2, ")")
-    table.insert(tChunk, i+2, "(")
+    tChunk[i+1] = tChunk[i+1].."()"
+    --table.insert(tChunk, i+2, ")")
+    --table.insert(tChunk, i+2, "(")
     if line > #lines then
       perror("unexpected error while parsing self call at index "..step.. " (line "..line.."): invalid line number")
     end
     --print("Line lines 1: "..lines[line])
-    lines[line] = lines[line] + 2
+    --lines[line] = lines[line] + 2
     --print("Line lines 2: "..lines[line])
     --print(tChunk[i+1], tChunk[i+2], tChunk[i+3])
     return true
@@ -285,8 +290,11 @@ local function findTernary(tChunk, i, part, lines, line)
   local ternary = "(function() if "..cond.." then return "..trueCase.." else return "..falseCase.." end end)()"
   for i = start, stop do
     table.remove(tChunk, start)
+    local l1 =  getCurrentLine(lines, start, 1, 0)
+    lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, ternary)
+  lines[line] = lines[line] + 1
   return true
 end
 
@@ -323,8 +331,11 @@ local function findForeach(tChunk, i, part)
   local func = table.concat(params, ",") .. " in _G.lpairs("..table.concat(vars, ",")..")"
   for i = start, stop do
     table.remove(tChunk, start)
+    local l1 =  getCurrentLine(lines, start, 1, 0)
+    lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, func)
+  lines[line] = lines[line] + 1
   return true
 end
 
