@@ -347,8 +347,8 @@ local keywords = {
 
 local function concatWithLines(tbl, lines)
   local chunktbl = {}
-  print(lines)
-  for _,j in ipairs(lines) do
+  for i,j in ipairs(lines) do
+    print(i,j)
     local linetbl = {}
     for k = 1,j do
       table.insert(linetbl, tbl[1])
