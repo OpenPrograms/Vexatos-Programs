@@ -347,6 +347,7 @@ local keywords = {
 
 local function concatWithLines(tbl, lines)
   local chunktbl = {}
+  print(lines)
   for _,j in ipairs(lines) do
     local linetbl = {}
     for k = 1,j do
@@ -382,7 +383,7 @@ local function parse(chunk, stripcomments)
       end
     end
   end
-  return table.concat(tChunk, " ")--concatWithLines(tChunk, lines)
+  return concatWithLines(tChunk, lines)
 end
 
 function selenep.parse(chunk)
