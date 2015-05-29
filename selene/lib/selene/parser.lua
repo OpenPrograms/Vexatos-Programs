@@ -162,6 +162,7 @@ local function tryAddReturn(code)
   if not tChunk then
     perror(msg)
   end
+  msg = nil
   for _, part in ipairs(tChunk) do
     if part:find("^return$") then
       return code
