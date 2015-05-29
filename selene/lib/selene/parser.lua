@@ -10,16 +10,28 @@ end
 
 local selenep = {}
 
+local function getCurrentLine(lines, index, start, num)
+  local curr = num or 0
+  start = start or 1
+  for i = start, #lines do
+    if index <= curr + lines[i] then
+      return i, curr
+    end
+    curr = curr + lines[i]
+  end
+  return #lines + 1, 0
+end
+
 -------------------------------------------------------------------------------
--- Stolen from text.lua
+-- Taken from text.lua and improved
 
 local function trim(value) -- from http://lua-users.org/wiki/StringTrim
   local from = string.match(value, "^%s*()")
   return from > #value and "" or string.match(value, ".*%S", from)
 end
 
-local function tokenize(value)
-  checkArg(1, value, "string")
+local function tokenize(value, stripcomments)
+  stripcomments = stripcomments or true
   if not value:find("\n$") then value = value.."\n" end
   local lines, currentlinecount = {}, 0
   local tokens, token = {}, ""
@@ -35,8 +47,10 @@ local function tokenize(value)
     elseif char == "\n" and quoted == "--" then
       quoted = false
       if token ~= "" then
-        table.insert(tokens, token)
-        currentlinecount = currentlinecount + 1
+        if not stripcomments then
+          table.insert(tokens, token)
+          currentlinecount = currentlinecount + 1
+        end
         token = ""
       end
       table.insert(lines, currentlinecount)
@@ -44,8 +58,16 @@ local function tokenize(value)
     elseif char == "]" and quoted == "--[[" and string.find(token, "%]$") then
       quoted = false
       if token ~= "" then
-        table.insert(tokens, token..char)
-        currentlinecount = currentlinecount + 1
+        token = token..char
+        if stripcomments then
+          for w in token:gmatch("\n") do
+            table.insert(lines, currentlinecount)
+            if currentlinecount ~= 0 then currentlinecount = 0 end
+          end
+        else
+          table.insert(tokens, token)
+          currentlinecount = currentlinecount + 1
+        end
         token = ""
       end
     elseif char == "[" and quoted == "--" and string.find(token, "%-%-%[$") then
@@ -95,7 +117,7 @@ local function tokenize(value)
     end
   end
   if quoted then
-    return nil, "unclosed quote at index " .. start .. " (line "..#lines..")"
+    return nil, "unclosed quote at index " .. start .. " (line "..getCurrentLine(lines, start, 1, 0)..")"
   end
   if token ~= "" then
     table.insert(tokens, token)
@@ -156,8 +178,8 @@ local function split(self, sep)
   return t
 end
 
-local function tryAddReturn(code)
-  local tChunk, msg = tokenize(code)
+local function tryAddReturn(code, stripcomments)
+  local tChunk, msg = tokenize(code, stripcomments)
   chunk = nil
   if not tChunk then
     perror(msg)
@@ -171,7 +193,7 @@ local function tryAddReturn(code)
   return "return "..code
 end
 
-local function findLambda(tChunk, i, part,line)
+local function findLambda(tChunk, i, part, line, stripcomments)
   local params = {}
   local step = i - 1
   local inst, step = bracket(tChunk, ")", "(", step, "", -1)
@@ -183,7 +205,7 @@ local function findLambda(tChunk, i, part,line)
   if not funcode:find("return", 1, true) then
     funcode = "return "..funcode
   else
-    funcode = tryAddReturn(funcode)
+    funcode = tryAddReturn(funcode, stripcomments)
   end
   for _, s in ipairs(params) do
     if not s:find("^"..varPattern .. "$") then
@@ -339,20 +361,9 @@ local function concatWithLines(tbl, lines)
   return table.concat(chunktbl, "\n")
 end
 
-local function getCurrentLine(lines, index, start, num)
-  local curr = num or 0
-  start = start or 1
-  for i = start, #lines do
-    if index <= curr + lines[i] then
-      return i, curr
-    end
-    curr = curr + lines[i]
-  end
-  return #lines + 1, 0
-end
-
-local function parse(chunk)
-  local tChunk, lines = tokenize(chunk)
+local function parse(chunk, stripcomments)
+  stripcomments = stripcomments or true
+  local tChunk, lines = tokenize(chunk, stripcomments)
   chunk = nil
   if not tChunk then
     error(lines)
@@ -363,11 +374,11 @@ local function parse(chunk)
       if not tChunk[i + 1] then tChunk[i + 1] = "" end
       if not tChunk[i - 1] then tChunk[i - 1] = "" end
       currentline, currentnum = getCurrentLine(lines, i, currentline)
-      local result = keywords[part](tChunk, i, part, currentline)
+      local result = keywords[part](tChunk, i, part, currentline, stripcomments)
       if result then
         local cnk = concatWithLines(tChunk, lines)
         tChunk = nil
-        return parse(cnk)
+        return parse(cnk, stripcomments)
       end
     end
   end
