@@ -21,7 +21,7 @@ end
 local function tokenize(value, stripcomments)
   stripcomments = stripcomments or true
   if not value:find("\n$") then value = value.."\n" end
-  local tokenlines, lines = {}, 1
+  local tokenlines, lines, skiplines = {}, 1, {}
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
@@ -53,15 +53,34 @@ local function tokenize(value, stripcomments)
         else
           table.insert(tokens, token)
           table.insert(tokenlines, lines)
+          skiplines[#tokenlines] = {}
+          for w in token:gmatch("\n") do
+            lines = lines + 1
+            table.insert(skiplines[#tokenlines], lines)
+          end
         end
         token = ""
       end
     elseif char == "[" and quoted == "--" and string.find(token, "%-%-%[$") then
       quoted = quoted .. "[["
       token = token .. char
-    elseif char == quoted or (char == "]" and string.find(token, "%]=*$") and #(string.match(token, "%]=*$")..char) == #quoted) then -- end of quoted string
+    elseif char == quoted then -- end of quoted string
       quoted = false
       token = token .. char
+      table.insert(tokens, token)
+      table.insert(tokenlines, lines)
+      token = ""
+    elseif char == "]" and string.find(token, "%]=*$") and #(string.match(token, "%]=*$")..char) == #quoted then
+      quoted = false
+      token = token .. char
+      table.insert(tokens, token)
+      table.insert(tokenlines, lines)
+      skiplines[#tokenlines] = {}
+      for w in token:gmatch("\n") do
+        lines = lines + 1
+        table.insert(skiplines[#tokenlines], lines)
+      end
+      token = ""
     elseif (char == "'" or char == '"') and not quoted then
       quoted = char
       start = i
@@ -122,7 +141,7 @@ local function tokenize(value, stripcomments)
      i = i + 1
     end
   end
-  return tokens, tokenlines
+  return tokens, tokenlines, skiplines
 end
 
 -------------------------------------------------------------------------------
@@ -343,26 +362,49 @@ local keywords = {
   ["$"    ] = findDollars
 }
 
-local function concatWithLines(tbl, lines)
+local function concatWithLines(tbl, lines, skiplines)
   local chunktbl = {}
   local last = 0
+  local deadlines = {}
   for i,j in ipairs(lines) do
     if not chunktbl[j] then chunktbl[j] = {} end
     table.insert(chunktbl[j], tbl[i])
-    last = j
+    last = math.max(last,j)
+    if skiplines[i] then
+      for _,v in ipairs(skiplines[i]) do
+        chunktbl[v] = false
+        deadlines[v] = j
+        last = math.max(last,v)
+      end
+    end
   end
   for i = 1,last do
-    if not chunktbl[i] then chunktbl[i] = {} end
+    if not chunktbl[i] and chunktbl[i] ~= false then
+      chunktbl[i] = {}
+    end
   end
-  for i in ipairs(chunktbl) do
-    chunktbl[i] = table.concat(chunktbl[i], " ")
+  local i = 1
+  while i <= #chunktbl do
+    if chunktbl[i] ~= false then
+      if not deadlines[i] then
+        chunktbl[i] = table.concat(chunktbl[i], " ")
+        i = i + 1
+      else
+        chunktbl[deadlines[i]] = chunktbl[deadlines[i]].." "..table.concat(chunktbl[i], " ")
+        deadlines[i] = nil
+        table.remove(chunktbl, i)
+      end
+    else
+      deadlines[i] = nil
+      table.remove(chunktbl, i)
+    end
   end
   return table.concat(chunktbl, "\n")
 end
 
 local function parse(chunk, stripcomments)
   stripcomments = stripcomments or true
-  local tChunk, tokenlines = tokenize(chunk, stripcomments)
+  local tChunk, tokenlines, skiplines = tokenize(chunk, stripcomments)
   chunk = nil
   if not tChunk then
     error(tokenlines)
@@ -373,14 +415,15 @@ local function parse(chunk, stripcomments)
       if not tChunk[i - 1] then tChunk[i - 1] = "" end
       local result = keywords[part](tChunk, i, part, tokenlines[i], tokenlines, stripcomments)
       if result then
-        local cnk = concatWithLines(tChunk, tokenlines)
+        local cnk = concatWithLines(tChunk, tokenlines, skiplines)
         tokenlines = nil
+        skiplines = nil
         tChunk = nil
         return parse(cnk, stripcomments)
       end
     end
   end
-  return concatWithLines(tChunk, tokenlines)
+  return concatWithLines(tChunk, tokenlines, skiplines)
 end
 
 function selenep.parse(chunk)
