@@ -395,7 +395,11 @@ local function concatWithLines(tbl, lines, skiplines)
         table.remove(chunktbl, i)
         for k = 1, last do
           if deadlines[k] and k > i then
-            deadlines[k-1] = deadlines[k] - 1
+            if deadlines[k] >= i then
+              deadlines[k-1] = deadlines[k] - 1
+            else
+              deadlines[k-1] = deadlines[k]
+            end
             deadlines[k] = nil
           end
         end
@@ -405,7 +409,11 @@ local function concatWithLines(tbl, lines, skiplines)
       table.remove(chunktbl, i)
       for k = 1, last do
         if deadlines[k] and k > i then
-          deadlines[k-1] = deadlines[k] - 1
+          if deadlines[k] >= i then
+            deadlines[k-1] = deadlines[k] - 1
+          else
+            deadlines[k-1] = deadlines[k]
+          end
           deadlines[k] = nil
         end
       end
