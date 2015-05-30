@@ -15,6 +15,7 @@ if #args == 0 or options.h then
   print("which can by done the standard way:")
   print("  selenec input.lua output.lua")
   print()
+  print("selenec -s strips comments from code when compiling to improve performance")
   print("selenec -r makes selenec not output but run compiled file")
   print("This option is especially useful when using shebang notation")
   print("To use it add at the begin of selene file following line:")
@@ -62,8 +63,8 @@ else
 end
   
 toParse = toParse:gsub("^#![^\n]+\n", "") -- remove shebang. sh will default to lua.
-local parsed = parser.parse(toParse)
-parsed = "require("selene")\n" .. parsed
+local parsed = parser.parse(toParse, options.s == true)
+parsed = 'require("selene")\n' .. parsed
 
 -- decide on write function
 if options.r then

@@ -744,8 +744,8 @@ end
 --------
 
 local parser = require("selene.parser")
-local function parse(chunk)
-  return parser.parse(chunk)
+local function parse(chunk, stripcomments)
+  return parser.parse(chunk, stripcomments)
 end
 
 --------

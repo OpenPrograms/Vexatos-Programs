@@ -19,7 +19,7 @@ local function trim(value) -- from http://lua-users.org/wiki/StringTrim
 end
 
 local function tokenize(value, stripcomments)
-  stripcomments = stripcomments or true
+  if not type(stripcomments) == "boolean" then stripcomments = true end
   if not value:find("\n$") then value = value.."\n" end
   local tokenlines, lines, skiplines = {}, 1, {}
   local tokens, token = {}, ""
@@ -219,7 +219,7 @@ local function findLambda(tChunk, i, part, line, tokenlines, stripcomments)
   end
   for _, s in ipairs(params) do
     if not s:find("^"..varPattern .. "$") then
-      perror("invalid lambda at index "..i.. " (line "..line.."): invalid parameters")
+      perror("invalid lambda at index "..i.. " (line "..line.."): invalid parameters: "..table.concat(params, ","))
     end
   end
   local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
@@ -393,17 +393,29 @@ local function concatWithLines(tbl, lines, skiplines)
         chunktbl[deadlines[i]] = chunktbl[deadlines[i]].." "..table.concat(chunktbl[i], " ")
         deadlines[i] = nil
         table.remove(chunktbl, i)
+        for k = 1, last do
+          if deadlines[k] and k > i then
+            deadlines[k-1] = deadlines[k] - 1
+            deadlines[k] = nil
+          end
+        end
       end
     else
       deadlines[i] = nil
       table.remove(chunktbl, i)
+      for k = 1, last do
+        if deadlines[k] and k > i then
+          deadlines[k-1] = deadlines[k] - 1
+          deadlines[k] = nil
+        end
+      end
     end
   end
   return table.concat(chunktbl, "\n")
 end
 
 local function parse(chunk, stripcomments)
-  stripcomments = stripcomments or true
+  if not type(stripcomments) == "boolean" then stripcomments = true end
   local tChunk, tokenlines, skiplines = tokenize(chunk, stripcomments)
   chunk = nil
   if not tChunk then
@@ -426,8 +438,8 @@ local function parse(chunk, stripcomments)
   return concatWithLines(tChunk, tokenlines, skiplines)
 end
 
-function selenep.parse(chunk)
-  return parse(chunk)
+function selenep.parse(chunk, stripcomments)
+  return parse(chunk, stripcomments)
 end
 
 return selenep
