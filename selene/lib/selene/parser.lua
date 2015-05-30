@@ -21,8 +21,7 @@ end
 local function tokenize(value, stripcomments)
   stripcomments = stripcomments or true
   if not value:find("\n$") then value = value.."\n" end
-  local lines, currentlinecount = {}, 0
-  local tokenlines = {}
+  local tokenlines, lines = {}, 1
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
@@ -38,26 +37,22 @@ local function tokenize(value, stripcomments)
       if token ~= "" then
         if not stripcomments then
           table.insert(tokens, token)
-          table.insert(tokenlines, #lines)
-          currentlinecount = currentlinecount + 1
+          table.insert(tokenlines, lines)
         end
         token = ""
       end
-      table.insert(lines, currentlinecount)
-      currentlinecount = 0
+      lines = lines + 1
     elseif char == "]" and quoted == "--[[" and string.find(token, "%]$") then
       quoted = false
       if token ~= "" then
         token = token..char
         if stripcomments then
           for w in token:gmatch("\n") do
-            table.insert(lines, currentlinecount)
-            if currentlinecount ~= 0 then currentlinecount = 0 end
+            lines = lines + 1
           end
         else
           table.insert(tokens, token)
-          table.insert(tokenlines, #lines)
-          currentlinecount = currentlinecount + 1
+          table.insert(tokenlines, lines)
         end
         token = ""
       end
@@ -84,46 +79,37 @@ local function tokenize(value, stripcomments)
     elseif string.find(char, "%s") and not quoted then -- delimiter
       if token ~= "" then
         table.insert(tokens, token)
-        table.insert(tokenlines, #lines)
-        currentlinecount = currentlinecount + 1
+        table.insert(tokenlines, lines)
         token = ""
       end
       if char == "\n" then
-        --io.write(unicode.sub(value, i-3, i-1).."\n")
-        --io.write(#tokens.."   "..table.concat(lines, " ").."\n")
-        table.insert(lines, currentlinecount)
-        --io.write(#tokens.."   "..table.concat(lines, " ").."\n")
-        currentlinecount = 0
+        lines = lines + 1
       end
     elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
       if token ~= "" then
         table.insert(tokens, token)
-        table.insert(tokenlines, #lines)
-        currentlinecount = currentlinecount + 1
+        table.insert(tokenlines, lines)
         token = ""
       end
       table.insert(tokens, char)
-      table.insert(tokenlines, #lines)
-      currentlinecount = currentlinecount + 1
+      table.insert(tokenlines, lines)
     elseif string.find(char, "[%->]") and string.find(token, "[%-=<]$") and not quoted then
       table.insert(tokens, token:sub(1, #token - 1))
       table.insert(tokens, token:sub(#token)..char)
-      table.insert(tokenlines, #lines)
-      table.insert(tokenlines, #lines)
-      currentlinecount = currentlinecount + 2
+      table.insert(tokenlines, lines)
+      table.insert(tokenlines, lines)
       token = ""
     else -- normal char
       token = token .. char
     end
   end
   if quoted then
-    return nil, "unclosed quote at index " .. start .. " (line "..tokenlines[start]..")"
+    return nil, "unclosed quote at index " .. start
   end
   if token ~= "" then
     table.insert(tokens, token)
-    table.insert(tokenlines, #lines)
-    currentlinecount = currentlinecount + 1
-    table.insert(lines, currentlinecount)
+    table.insert(tokenlines, lines)
+    lines = lines + 1
   end
   local i = 1
   while i <= #tokens do
@@ -131,13 +117,12 @@ local function tokenize(value, stripcomments)
       table.remove(tokens, i)
       local l = tokenlines[i]
       table.remove(tokenlines, i)
-      lines[l] = lines[l] - 1
     else
      tokens[i] = trim(tokens[i])
      i = i + 1
     end
   end
-  return tokens, lines, tokenlines
+  return tokens, tokenlines
 end
 
 -------------------------------------------------------------------------------
@@ -199,7 +184,7 @@ local function tryAddReturn(code, stripcomments)
   return "return "..code
 end
 
-local function findLambda(tChunk, i, part, lines, line, tokenlines, stripcomments)
+local function findLambda(tChunk, i, part, line, tokenlines, stripcomments)
   local params = {}
   local step = i - 1
   local inst, step = bracket(tChunk, ")", "(", step, "", -1)
@@ -219,20 +204,16 @@ local function findLambda(tChunk, i, part, lines, line, tokenlines, stripcomment
     end
   end
   local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
-  --local l, s = 1, start
   for i = start, stop do
     table.remove(tChunk, start)
-    local l1 = tokenlines[start]
     table.remove(tokenlines, start)
-    lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, func)
   table.insert(tokenlines, start, line)
-  lines[line] = lines[line] + 1
   return true
 end
 
-local function findDollars(tChunk, i, part, lines, line, tokenlines)
+local function findDollars(tChunk, i, part, line, tokenlines)
   local curr = tChunk[i + 1]
   if curr:find("^%(") then
     tChunk[i] = "_G._selene._new"
@@ -240,17 +221,14 @@ local function findDollars(tChunk, i, part, lines, line, tokenlines)
     tChunk[i] = "_G._selene._newList"
     table.remove(tChunk, i + 1)
     table.remove(tokenlines, i+1)
-    lines[line] = lines[line] - 1
   elseif curr:find("^f") then
     tChunk[i] = "_G._selene._newFunc"
     table.remove(tChunk, i + 1)
     table.remove(tokenlines, i+1)
-    lines[line] = lines[line] - 1
   elseif curr:find("^s") then
     tChunk[i] = "_G._selene._newString"
     table.remove(tChunk, i + 1)
     table.remove(tokenlines, i+1)
-    lines[line] = lines[line] - 1
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
@@ -260,25 +238,16 @@ local function findDollars(tChunk, i, part, lines, line, tokenlines)
   return true
 end
 
-local function findSelfCall(tChunk, i, part, lines, line)
+local function findSelfCall(tChunk, i, part, line)
   if not tChunk[i + 2] then tChunk[i + 2] = "" end
   if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) then
     tChunk[i+1] = tChunk[i+1].."()"
-    --table.insert(tChunk, i+2, ")")
-    --table.insert(tChunk, i+2, "(")
-    --if line > #lines then
-    --  perror("unexpected error while parsing self call at index "..step.. " (line "..line.."): invalid line number")
-    --end
-    --print("Line lines 1: "..lines[line])
-    --lines[line] = lines[line] + 2
-    --print("Line lines 2: "..lines[line])
-    --print(tChunk[i+1], tChunk[i+2], tChunk[i+3])
     return true
   end
   return false
 end
 
-local function findTernary(tChunk, i, part, lines, line, tokenlines)
+local function findTernary(tChunk, i, part, line, tokenlines)
   local step = i - 1
   local cond, step = bracket(tChunk, ")", "(", step, "", -1)
   local start = step
@@ -293,17 +262,14 @@ local function findTernary(tChunk, i, part, lines, line, tokenlines)
   local ternary = "(function() if "..cond.." then return "..trueCase.." else return "..falseCase.." end end)()"
   for i = start, stop do
     table.remove(tChunk, start)
-    local l1 =  tokenlines[start]
     table.remove(tokenlines, start)
-    lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, ternary)
   table.insert(tokenlines, start, line)
-  lines[line] = lines[line] + 1
   return true
 end
 
-local function findForeach(tChunk, i, part, tokenlines)
+local function findForeach(tChunk, i, part, line, tokenlines)
   local start = nil
   local step = i - 1
   local params = {}
@@ -336,13 +302,10 @@ local function findForeach(tChunk, i, part, tokenlines)
   local func = table.concat(params, ",") .. " in _G.lpairs("..table.concat(vars, ",")..")"
   for i = start, stop do
     table.remove(tChunk, start)
-    local l1 =  tokenlines[start]
     table.remove(tokenlines, start)
-    lines[l1] = lines[l1] - 1
   end
   table.insert(tChunk, start, func)
-  table.insert(tChunk, start, line)
-  lines[line] = lines[line] + 1
+  table.insert(tokenlines, start, line)
   return true
 end
 
@@ -382,48 +345,42 @@ local keywords = {
 
 local function concatWithLines(tbl, lines)
   local chunktbl = {}
-  for _,j in ipairs(lines) do
-    local linetbl = {}
-    for k = 1,j do
-      table.insert(linetbl, tbl[1])
-      table.remove(tbl, 1)
-    end
-    table.insert(chunktbl, table.concat(linetbl, " "))
+  local last = 0
+  for i,j in ipairs(lines) do
+    if not chunktbl[j] then chunktbl[j] = {} end
+    table.insert(chunktbl[j], tbl[i])
+    last = j
   end
-  for _,j in ipairs(tbl) do
-    table.insert(chunktbl, j)
+  for i = 1,last do
+    if not chunktbl[i] then chunktbl[i] = {} end
+  end
+  for i in ipairs(chunktbl) do
+    chunktbl[i] = table.concat(chunktbl[i], " ")
   end
   return table.concat(chunktbl, "\n")
 end
 
 local function parse(chunk, stripcomments)
   stripcomments = stripcomments or true
-  local tChunk, lines, tokenlines = tokenize(chunk, stripcomments)
+  local tChunk, tokenlines = tokenize(chunk, stripcomments)
   chunk = nil
   if not tChunk then
-    error(lines)
+    error(tokenlines)
   end
-  local currentline = 1
   for i, part in ipairs(tChunk) do
     if keywords[part] then
       if not tChunk[i + 1] then tChunk[i + 1] = "" end
       if not tChunk[i - 1] then tChunk[i - 1] = "" end
-      currentline = tokenlines[i]
-      local result = keywords[part](tChunk, i, part, lines, currentline, tokenlines, stripcomments)
+      local result = keywords[part](tChunk, i, part, tokenlines[i], tokenlines, stripcomments)
       if result then
-        local cnk = concatWithLines(tChunk, lines)
-        lines = nil
+        local cnk = concatWithLines(tChunk, tokenlines)
         tokenlines = nil
         tChunk = nil
         return parse(cnk, stripcomments)
       end
     end
   end
-  --[[for i,j in ipairs(lines) do
-    print(i,j)
-  end
-  print(table.concat(tChunk, " "))]]
-  return concatWithLines(tChunk, lines)
+  return concatWithLines(tChunk, tokenlines)
 end
 
 function selenep.parse(chunk)
