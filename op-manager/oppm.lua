@@ -390,7 +390,7 @@ local function installPackage(pack,path,update)
   if update then
     print("Updating package "..pack)
     if not tPacks[pack] then
-      io.stderr:write("error while checking update path")
+      io.stderr:write("error while checking update path\n")
       return
     end
     for i,j in pairs(info.files) do
@@ -473,6 +473,7 @@ local function installPackage(pack,path,update)
       return
     end
   end
+  saveToFile(tPacks)
   if info.dependencies then
     term.write("Done.\nInstalling Dependencies...\n")
     for i,j in pairs(info.dependencies) do
@@ -502,13 +503,17 @@ local function installPackage(pack,path,update)
         if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
-        installPackage(string.lower(i),fs.concat(path,j),update)
+        local tNewPacks = installPackage(string.lower(i),fs.concat(path,j),update)
+        if tNewPacks then
+          tPacks = tNewPacks
+        end
       end
     end
   end
-  term.write("Done.\n")
   saveToFile(tPacks)
+  term.write("Done.\n")
   print("Successfully installed package "..pack)
+  return tPacks
 end
 
 local function uninstallPackage(pack)
