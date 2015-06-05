@@ -340,8 +340,14 @@ local function provideInfo(pack)
     done = true
   end
   if info.files then
-    print("Number of files: "..tostring(#info.files))
-    done = true
+    local c = 0
+    for i in pairs(info.files) do
+     c = c + 1
+    end
+    if c > 0 then
+      print("Number of files: "..tostring(c))
+      done = true
+    end
   end
   if not done then
     print("No information provided.")
