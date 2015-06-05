@@ -474,6 +474,7 @@ local function installPackage(pack,path,update)
     end
   end
   saveToFile(tPacks)
+
   if info.dependencies then
     term.write("Done.\nInstalling Dependencies...\n")
     for i,j in pairs(info.dependencies) do
@@ -487,6 +488,7 @@ local function installPackage(pack,path,update)
         local success,response = pcall(downloadFile,i,nPath)
         if success and response then
           tPacks[pack][i] = nPath
+          saveToFile(tPacks)
         else
           response = response or "no error message"
           term.write("Error while installing files for package '"..pack.."': "..response..". Reverting installation... ")
@@ -495,8 +497,9 @@ local function installPackage(pack,path,update)
             fs.remove(p)
             tPacks[pack][o]=nil
           end
+          saveToFile(tPacks)
           print("Done.\nPlease contact the package author about this problem.")
-          return
+          return tPacks
         end
       else
         local depInfo = getInformation(string.lower(i))
