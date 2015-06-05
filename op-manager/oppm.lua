@@ -355,13 +355,17 @@ local function installPackage(pack,path,update)
     printUsage()
     return
   end
-  if not path and not update then
+  if not path then
     local lConfig = readFromFile(2)
     path = lConfig.path or "/usr"
-    print("Installing package to "..path.."...")
+    if not update then
+      print("Installing package to "..path.."...")
+    end
   elseif not update then
     path = shell.resolve(path)
-    print("Installing package to "..path.."...")
+    if not update then
+      print("Installing package to "..path.."...")
+    end
   end
   pack = string.lower(pack)
 
@@ -379,7 +383,6 @@ local function installPackage(pack,path,update)
   end
   if update then
     print("Updating package "..pack)
-    path = nil
     if not tPacks[pack] then
       io.stderr:write("error while checking update path")
       return
