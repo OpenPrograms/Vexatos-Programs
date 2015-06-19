@@ -888,7 +888,7 @@ local function unloadSelene(env)
   env.bit32.nfor = nil
 end
 
-if not _G._selene or not _G._selene.initDone then
+if not _selene or not _selene.initDone then
   loadSelene(_G)
 end
 
@@ -897,7 +897,7 @@ selene.parse = parse
 selene.load = loadSelene
 selene.unload = unloadSelene
 selene.isLoaded = function()
-  return _G._selene and _G._selene.initDone
+  return _selene and _selene.initDone
 end
 
 return selene
