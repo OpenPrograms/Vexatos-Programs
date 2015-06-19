@@ -153,8 +153,8 @@ local function listPackages(filter)
           io.stderr:write("Error while trying to receive package list for " .. j.repo.."\n")
           return
         elseif type(lPacks) == "table" then
-          for k in pairs(lPacks) do
-            if not k.hidden then
+          for k,kt in pairs(lPacks) do
+            if not kt.hidden then
               table.insert(packages,k)
             end
           end
@@ -164,8 +164,8 @@ local function listPackages(filter)
     local lRepos = readFromFile(2)
     if lRepos and lRepos.repos then
       for _,j in pairs(lRepos.repos) do
-        for k in pairs(j) do
-          if not k.hidden then
+        for k,kt in pairs(j) do
+          if not kt.hidden then
             table.insert(packages,k)
           end
         end
