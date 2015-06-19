@@ -1,11 +1,11 @@
-if not _selene then _selene = {} end
-_selene.liveMode = dofile("/etc/selene.cfg")
-if _selene.liveMode then
-  _PROMPT = "selene> "
-  kernel.userspace._PROMPT = _PROMPT
+local u = kernel.userspace
+if not u._selene then u._selene = {} end
+u._selene.liveMode = dofile("/etc/selene.cfg")
+if u._selene.liveMode then
+  u._PROMPT = _PROMPT
 end
 
-_selene.initDone = true
-local selene = kernel.userspace.require("selene")
-_selene.initDone = false
-selene.load(kernel.userspace)
+u._selene.initDone = true
+local selene = u.require("selene")
+u._selene.initDone = false
+selene.load(u)
