@@ -1,3 +1,4 @@
+-- Authors: Vexatos and Kubuxu
 local shell = require("shell")
 local parser = require("selene.parser")
 
