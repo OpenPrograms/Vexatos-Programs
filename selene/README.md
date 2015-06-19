@@ -102,7 +102,7 @@ Firstly, Selene adds two convenient functions to the `bit32` library, called fis
 ###table
 The native `table` library got two new functions:
  - `table.shallowcopy(t:table):table` This will return a copy `t` that contains every entry `t` did contain.
- - `table.flatten(t:table):table` This will collapse one level of inner tables and merge their entries into `t`. `t` need to be a valid list (every key in the table has to be a number valid for `ipairs`). Inner tables will only get merged if they are lists as well, tables with invalid keys will stay the way they are in the table.
+ - `table.flatten(t:table):table` This will collapse one level of inner tables and merge their entries into `t`. `t` needs to be a valid list (every key in the table has to be a number valid for `ipairs`). Inner tables will only get merged if they are lists as well, tables with invalid keys will stay the way they are in the table.
  - `table.range(start:number, stop:number [, step:number]):table` This will create a range of numbers ranging from `start` to `stop`, with a step size of `step` or 1.
  - `table.zipped(t1:table, t2:table):table` This will merge two tables into one if both have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`
 

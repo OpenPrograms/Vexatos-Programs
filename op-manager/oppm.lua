@@ -482,9 +482,10 @@ local function installPackage(pack,path,update)
       if string.find(j,"^//") then
         nPath = string.sub(j,2)
       else
-        nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
+        nPath = fs.concat(path,j)
       end
       if string.lower(string.sub(i,1,4))=="http" then
+        nPath = fs.concat(nPath, string.gsub(i,".+(/.-)$","%1"),nil)
         local success,response = pcall(downloadFile,i,nPath)
         if success and response then
           tPacks[pack][i] = nPath
@@ -506,7 +507,7 @@ local function installPackage(pack,path,update)
         if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
-        local tNewPacks = installPackage(string.lower(i),fs.concat(path,j),update)
+        local tNewPacks = installPackage(string.lower(i),nPath,update)
         if tNewPacks then
           tPacks = tNewPacks
         end

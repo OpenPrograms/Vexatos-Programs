@@ -753,50 +753,50 @@ end
 --------
 
 local VERSION = "Selene 1.0.0"
-local oldload
 
-local function load()
-  if _G._selene and _G._selene.initDone then return end
-  if not _G._selene then _G._selene = {} end
+local function loadSelene(env)
+  if not env or type(env) ~= "table" then env = _G end
+  if env._selene and env._selene.initDone then return end
+  if not env._selene then env._selene = {} end
 
-  _G._selene._new = function(t)
+  env._selene._new = function(t)
     if type(t) == "string" then
       return newString(t)
     else
       return newListOrMap(t)
     end
   end
-  if not _G.checkArg then _G.checkArg = checkArg end
-  _G._selene._newString = newString
-  _G._selene._newList = newList
-  _G._selene._newFunc = newFunc
-  _G._selene._VERSION = VERSION
-  _G.ltype = tblType
-  _G.checkType = checkType
-  _G.checkFunc = checkFunc
-  _G.parCount = parCount
-  _G.lpairs = lpairs
-  _G.isList = isList
+  if not env.checkArg then env.checkArg = checkArg end
+  env._selene._newString = newString
+  env._selene._newList = newList
+  env._selene._newFunc = newFunc
+  env._selene._VERSION = VERSION
+  env.ltype = tblType
+  env.checkType = checkType
+  env.checkFunc = checkFunc
+  env.parCount = parCount
+  env.lpairs = lpairs
+  env.isList = isList
 
-  _G.string.foreach = str_foreach
-  _G.string.map = str_map
-  _G.string.filter = str_filter
-  _G.string.drop = str_drop
-  _G.string.dropwhile = str_dropwhile
-  _G.string.foldleft = str_foldleft
-  _G.string.foldright = str_foldright
-  _G.string.split = str_split
+  env.string.foreach = str_foreach
+  env.string.map = str_map
+  env.string.filter = str_filter
+  env.string.drop = str_drop
+  env.string.dropwhile = str_dropwhile
+  env.string.foldleft = str_foldleft
+  env.string.foldright = str_foldright
+  env.string.split = str_split
   
-  _G.table.shallowcopy = shallowcopy
-  _G.table.flatten = function(tbl)
+  env.table.shallowcopy = shallowcopy
+  env.table.flatten = function(tbl)
     checkList(1, tbl)
     return rawflatten(tbl)
   end
-  _G.table.range = tbl_range
-  _G.table.zipped = tbl_zipped
+  env.table.range = tbl_range
+  env.table.zipped = tbl_zipped
 
-  _G.bit32.bfor = bfor
-  _G.bit32.nfor = nfor
+  env.bit32.bfor = bfor
+  env.bit32.nfor = nfor
 
   _Table.concat = tbl_concat
   _Table.foreach = tbl_foreach
@@ -832,70 +832,70 @@ local function load()
     return str_split(tostring(self), sep)
   end
 
-if _G._selene and _G._selene.liveMode then
-  oldload = _G.load
-  _G.load = function(ld, src, mv, env) 
-    if _G._selene and _G._selene.liveMode then
-      local s = ""
-      if type(ld) == "function" then
-        local nws = ld()
-        while nws and #nws > 0 do
-          s = s .. nws
-          nws = ld()
+  if env._selene and env._selene.liveMode then
+    env._selene.oldload = env.load
+    env.load = function(ld, src, mv, env) 
+      if env._selene and env._selene.liveMode then
+        local s = ""
+        if type(ld) == "function" then
+          local nws = ld()
+          while nws and #nws > 0 do
+            s = s .. nws
+            nws = ld()
+          end
         end
+        ld = parse(ld)
       end
-      ld = parse(ld)
+      return env._selene.oldload(ld, src, mv, env)
     end
-    return oldload(ld, src, mv, env)
   end
+  env._selene.initDone = true
 end
 
-  _G._selene.initDone = true
-end
-
-local function unload()
-  if not _G._selene or not _G._selene.initDone then return end
-  if _G._selene and _G._selene.liveMode and oldload then
-    _G.load = oldload
+local function unloadSelene(env)
+  if not env or type(env) ~= "table" then env = _G end
+  if not env._selene or not env._selene.initDone then return end
+  if env._selene and env._selene.liveMode and env._selene.oldload then
+    env.load = env._selene.oldload
   end
   do
-    local liveMode = _G._selene.liveMode
-    _G._selene = {}
-    _G._selene.liveMode = liveMode
+    local liveMode = env._selene.liveMode
+    env._selene = {}
+    env._selene.liveMode = liveMode
   end
-  _G.ltype = nil
-  _G.checkType = nil
-  _G.checkFunc = nil
-  _G.parCount = nil
-  _G.lpairs = nil
-  _G.isList = nil
+  env.ltype = nil
+  env.checkType = nil
+  env.checkFunc = nil
+  env.parCount = nil
+  env.lpairs = nil
+  env.isList = nil
 
-  _G.string.foreach = nil
-  _G.string.map = nil
-  _G.string.filter = nil
-  _G.string.drop = nil
-  _G.string.dropwhile = nil
-  _G.string.foldleft = nil
-  _G.string.foldright = nil
-  _G.string.split = nil
+  env.string.foreach = nil
+  env.string.map = nil
+  env.string.filter = nil
+  env.string.drop = nil
+  env.string.dropwhile = nil
+  env.string.foldleft = nil
+  env.string.foldright = nil
+  env.string.split = nil
   
-  _G.table.shallowcopy = nil
-  _G.table.flatten = nil
-  _G.table.range = nil
-  _G.table.zipped = nil
+  env.table.shallowcopy = nil
+  env.table.flatten = nil
+  env.table.range = nil
+  env.table.zipped = nil
 
-  _G.bit32.bfor = nil
-  _G.bit32.nfor = nil
+  env.bit32.bfor = nil
+  env.bit32.nfor = nil
 end
 
 if not _G._selene or not _G._selene.initDone then
-  load()
+  loadSelene(_G)
 end
 
 local selene = {}
 selene.parse = parse
-selene.load = load
-selene.unload = unload
+selene.load = loadSelene
+selene.unload = unloadSelene
 selene.isLoaded = function()
   return _G._selene and _G._selene.initDone
 end
