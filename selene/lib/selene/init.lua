@@ -834,7 +834,7 @@ local function loadSelene(env)
 
   if env._selene and env._selene.liveMode then
     env._selene.oldload = env.load
-    env.load = function(ld, src, mv, env) 
+    env.load = function(ld, src, mv, loadenv) 
       if env._selene and env._selene.liveMode then
         local s = ""
         if type(ld) == "function" then
@@ -846,7 +846,7 @@ local function loadSelene(env)
         end
         ld = parse(ld)
       end
-      return env._selene.oldload(ld, src, mv, env)
+      return env._selene.oldload(ld, src, mv, loadenv)
     end
   end
   env._selene.initDone = true
@@ -889,7 +889,7 @@ local function unloadSelene(env)
 end
 
 if not _selene or not _selene.initDone then
-  loadSelene(_G)
+  loadSelene(_G or _ENV)
 end
 
 local selene = {}
