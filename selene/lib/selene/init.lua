@@ -913,6 +913,8 @@ local function unloadSelene(env)
   env.string.drop = nil
   env.string.dropright = nil
   env.string.dropwhile = nil
+  env.string.take = nil
+  env.string.takeright = nil
   env.string.foldleft = nil
   env.string.foldright = nil
   env.string.split = nil
