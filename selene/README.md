@@ -96,13 +96,7 @@ If the table can be iterated through with `ipairs` (i.e. if every key in the tab
 This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native libraries.
 
 ###global
- - `checkArg(n:number, obj:anything [, validTypes:string...])` This function errors if the type of `obj` is not one of the specified valid types. `n` is only used as the index in the error message.
- - `ltype(obj:anything):string` This function works like `type`, just that it may return `"map"` or `"list"` on wrapped tables, `"stringlist"` on wrapped strings and `"function"` on wrapped functions.
- - `checkType(n:number, obj:anything [, validTypes:string...])` This function errors if the type of `obj` is not one of the specified valid types. This function does recognize types returned by `ltype`. If no value is given for `validTypes`, it will default to all valid kinds of wrapped tables. `n` is only used as the index in the error message.
- - `checkFunc(n:number, obj [, validParCounts:number...])` This function errors if `obj` is not a function or does not have one of the specified parameter counts. `n` is only used as the index in the error message.
- - `parCount(obj:function [, def:number]):number or nil` Returns the number of parameters this function has if it is a wrapped function, or the default value if it is a function.
- - `lpairs` This returns the appropriate iterator for a wrapped table or string, otherwise it works like `pairs`.
- - `isList(obj:anything):boolean` This returns `true` if `obj` is a wrapped list, a wrapped string or if it is a table and every key in the table is a number valid for `ipairs`
+ - `checkArg(n:number, obj:anything, types:string...)` This function errors when `obj` does not match any of the specified types. `n` is the index of the parameter, used for a more descriptive error message.
 
 ###bit32
 Firstly, Selene adds two convenient functions to the `bit32` library, called fish-or or `for`:
