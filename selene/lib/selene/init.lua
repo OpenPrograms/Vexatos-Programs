@@ -852,7 +852,7 @@ end
 -- Adding to global variables
 --------
 
-local VERSION = "Selene 1.0.0"
+local VERSION = "Selene 1.0.1"
 
 local function loadSelene(env)
   if not env or type(env) ~= "table" then env = _G end
