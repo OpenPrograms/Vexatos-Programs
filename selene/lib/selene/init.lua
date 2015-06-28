@@ -412,22 +412,34 @@ local function tbl_filter(self, f)
   return newListOrMap(filtered)
 end
 
-local function wrap_dropOrTake(self, amt, wrap, whenzero, whenall)
-  checkType(1, self, "list", "stringlist")
-  checkArg(2, amt, "number")
-  amt = clamp(amt, 0, #self)
-  if amt == 0 then
-    return whenzero(self)
-  elseif amt == #self then
-    return whenall(self)
-  else
+local function wrap_tableDropReturn(self, amt, wrap)
     local dropped = {}
     local start, stop = wrap(self, amt)
     for i = start, stop do
       insert(dropped, false, self._tbl[i])
     end
     return newListOrMap(dropped)
+end
+
+local function wrap_stringDropReturn(self, amt, wrap)
+  return self:sub(wrap(self, amt))
+end
+
+local function wrap_handleDropReturn(self, amt, wrap, whenzero, whenall, normal)
+  if amt == 0 then
+    return whenzero(self)
+  elseif amt == #self then
+    return whenall(self)
+  else
+    return normal(self, amt, wrap)
   end
+end
+
+local function wrap_dropOrTake(self, amt, wrap, whenzero, whenall)
+  checkType(1, self, "list", "stringlist")
+  checkArg(2, amt, "number")
+  amt = clamp(amt, 0, #self)
+  return wrap_handleDropReturn(self, amt, wrap, whenzero, whenall, wrap_tableDropReturn)
 end
   
 -- Removes the first amt entries of the list, returns a list
@@ -451,22 +463,26 @@ local function tbl_takeright(self, amt)
 end
 
 -- Removes entries while the function returns true, returns a list
-local function tbl_dropwhile(self, f)
+local function wrap_dropOrTakeWhile(self, f, wrap, whenzero, whenall)
   checkType(1, self, "list", "stringlist")
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
-  local dropped = {}
-  local curr = 1
+  local curr = 0
   for i, j in mpairs(self) do
     if not f(parCnt(i, j)) then
       break
     end
     curr = i
   end
-  for i = curr, #self do
-    insert(dropped, false, self._tbl[i])
-  end
-  return newListOrMap(dropped)
+  return wrap_handleDropReturn(self, curr, wrap, whenzero, whenall, wrap_tableDropReturn)
+end
+
+local function tbl_dropwhile(self, f)
+  return wrap_dropOrTakeWhile(self, f, wrap_dropfromleft, wrap_returnself, wrap_returnempty)
+end
+
+local function tbl_takewhile(self, f)
+  return wrap_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_returnempty, wrap_returnself)
 end
 
 --inverts the list
@@ -623,6 +639,10 @@ local function strl_dropwhile(self, f)
   return strl_dropOrTake(self, f, tbl_dropwhile)
 end
 
+local function strl_takewhile(self, f)
+  return strl_dropOrTake(self, f, tbl_takewhile)
+end
+
 --------
 -- Bulk data operations on strings
 --------
@@ -672,13 +692,7 @@ local function wrap_str_dropOrTake(self, amt, wrap, whenzero, whenall)
   checkArg(1, self, "string")
   checkArg(2, amt, "number")
   amt = clamp(amt, 0, #self)
-  if amt == 0 then
-    return whenzero(self)
-  elseif amt == #self then
-    return whenall(self)
-  else
-    return self:sub(wrap(self, amt))
-  end
+  return wrap_handleDropReturn(self, amt, wrap, whenzero, whenall, wrap_stringDropReturn)
 end
 
 -- Removes the first amt characters of the string, returns a string
@@ -702,7 +716,7 @@ local function str_takeright(self, amt)
 end
 
 -- Removes characters while the function returns true, returns a string
-local function str_dropwhile(self, f)
+local function wrap_str_dropOrTakeWhile(self, f, wrap, whenzero, whenall)
   checkArg(1, self, "string")
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f))
@@ -714,9 +728,15 @@ local function str_dropwhile(self, f)
     end
     index = i
   end
-  if index == 0 then return self
-  elseif index == #self then return ""
-  else return self:sub(index + 1) end
+  return wrap_handleDropReturn(self, index, wrap, whenzero, whenall, wrap_stringDropReturn)
+end
+
+local function str_dropwhile(self, f)
+  return wrap_str_dropOrTakeWhile(self, f, wrap_dropfromleft, wrap_returnself, wrap_emptystring)
+end
+
+local function str_takewhile(self, f)
+  return wrap_str_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_emptystring, wrap_returnself)
 end
 
 -- Returns the accumulator
@@ -814,6 +834,7 @@ local function loadSelene(env)
   env.string.dropwhile = str_dropwhile
   env.string.take = str_take
   env.string.takeright = str_takeright
+  env.string.takewhile = str_takewhile
   env.string.foldleft = str_foldleft
   env.string.foldright = str_foldright
   env.string.split = str_split
@@ -837,7 +858,8 @@ local function loadSelene(env)
   _table.dropright = tbl_dropright
   _Table.dropwhile = tbl_dropwhile
   _Table.take = tbl_take
-  _Table.take = tbl_takeright
+  _Table.takeright = tbl_takeright
+  _Table.takewhile = tbl_takewhile
   _Table.reverse = tbl_reverse
   _Table.foldleft = tbl_foldleft
   _Table.foldright = tbl_foldright
@@ -861,6 +883,7 @@ local function loadSelene(env)
   _String.dropwhile = strl_dropwhile
   _String.take = strl_take
   _String.takeright = strl_takeright
+  _String.takewhile = strl_takewhile
   _String.reverse = tbl_reverse
   _String.foldleft = tbl_foldleft
   _String.foldright = tbl_foldright
@@ -915,6 +938,7 @@ local function unloadSelene(env)
   env.string.dropwhile = nil
   env.string.take = nil
   env.string.takeright = nil
+  env.string.takewhile = nil
   env.string.foldleft = nil
   env.string.foldright = nil
   env.string.split = nil

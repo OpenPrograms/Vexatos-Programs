@@ -117,6 +117,7 @@ These functions will not work directly called on a string, i.e. `string.drop("He
  - `string.dropwhile(s:string, f:function):string` This function will remove the first character of the string as long as `f` returns `true` on that character (or on the index and the character).
  - `string.take(s:string, n:number):string` This function will take the first `n` characters from the string and return the new string.
  - `string.takeright(s:string, n:number):string` This function will take the last `n` characters from the string and return the new string.
+ - `string.takewhile(s:string, f:function):string` This function will iterate through the characters of the string and add the characters to the returned string as long as `f` returns `true` on the currently checked character (or on the index and the character).
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value `f` returns will then be assigned to `m` for the next iteration.
  - `string.foldright(s:string, m:anything, f:function):anything` Exactly like `string.foldleft`, just that it starts iterating at the end of the string.
  - `string.split(s:string, sep:string or nil):list` This function splits the string whenever it encounters the specified separator, returning a list of every part of the string.
@@ -136,6 +137,7 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$l():dropwhile(function):list` This works exactly like `string.dropwhile`, just that it will iterate through each key/value pair in the table and will return a list with the dropped entries.
  - `$l():take(n:number):list` This function will take the first `n` entries from the list and return a list with the taken entries.
  - `$l():takeright(n:number):list` This function will take the last `n` entries from the list and return a list with the taken entries.
+ - `$l():takewhile(function):list` This works exactly like `string.takewhile`, just that it will iterate through each key/value pair in the table and will return a list with the taken entries.
  - `$l():reverse():list` This function will invert the list so that the last entry will be the first one etc.
  - `$l():flatten():list` This works exactly like `table.flatten`.
  - `$l():zip(other:list or table or function):list` This will merge the other table (which has to be an ipairs-valid list) or list into itself if both lists have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`. If `other` is a function or wrapped function, it will call it once per iteration and merge the returned value in the described pattern.
