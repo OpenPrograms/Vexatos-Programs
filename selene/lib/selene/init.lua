@@ -569,6 +569,58 @@ local function tbl_zip(self, other)
   return newList(zipped)
 end
 
+local function tbl_contains(self, val)
+  checkType(1, self)
+  for i,j in mpairs(self) do
+    if j == val then
+      return true
+    end
+  end
+  return false
+end
+
+local function tbl_containskey(self, key)
+  checkType(1, self)
+  return self._tbl[key] ~= nil
+end
+
+local function tbl_count(self, f)
+  checkType(1, self)
+  checkFunc(2, f)
+  local parCnt = checkParCnt(parCount(f, 2))
+  local cnt = 0
+  for i,j in mpairs(self) do
+    if f(parCnt(i, j)) then
+      cnt = cnt + 1
+    end
+  end
+  return cnt
+end
+
+local function tbl_exists(self, f)
+  checkType(1, self)
+  checkFunc(2, f)
+  local parCnt = checkParCnt(parCount(f, 2))
+  for i,j in mpairs(self) do
+    if f(parCnt(i, j)) then
+      return true
+    end
+  end
+  return false
+end
+
+local function tbl_forall(self, f)
+  checkType(1, self)
+  checkFunc(2, f)
+  local parCnt = checkParCnt(parCount(f, 2))
+  for i,j in mpairs(self) do
+    if not f(parCnt(i, j)) then
+      return false
+    end
+  end
+  return true
+end
+
 -- for the actual table library
 
 local function tbl_range(start, stop, step)
@@ -866,6 +918,11 @@ local function loadSelene(env)
   _Table.find = tbl_find
   _Table.flatten = tbl_flatten
   _Table.zip = tbl_zip
+  _Table.contains = tbl_contains
+  _Table.containskey = tbl_containskey
+  _Table.count = tbl_count
+  _Table.exists = tbl_exists
+  _Table.forall = tbl_forall
 
   _Table.shallowcopy = function(self)
     checkType(1, self)
@@ -891,6 +948,10 @@ local function loadSelene(env)
     checkType(1, self, "stringlist")
     return str_split(tostring(self), sep)
   end
+  _String.contains = tbl_contains
+  _String.count = tbl_count
+  _String.exists = tbl_exists
+  _String.forall = tbl_forall
 
   if env._selene and env._selene.liveMode then
     env._selene.oldload = env.load

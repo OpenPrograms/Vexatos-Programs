@@ -131,6 +131,11 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$():foldleft(m:anything, f:function):anything` This works exactly like `string.foldleft`, just that it will iterate through each key/value pair in the table.
  - `$():foldright(m:anything, f:function):anything` TExactly like `$():foldleft`, just that it starts iterating at the end of the list.
  - `$():find(f:function):anything` This returns the first element of the table that `f` returns `true` on.
+ - `$():contains(val:anything):boolean` This returns true if the table contains `val`.
+ - `$():containskey(key:anything):boolean` This returns true if the table has [key] mapped to any value that is not `nil`.
+ - `$():count(f:function):number` This returns the amount of elements in the table that `f` returns `true` on.
+ - `$():exists(f:function):boolean` This returns true if `f` returns `true` on any of the elements.
+ - `$():forall(f:function):boolean` This returns true if `f` returns `true` on every element in the table.
  - `$():shallowcopy()` This works exactly like `table.shallowcopy`.
  - `$l():drop(n:number):list` This function will remove the first `n` entries from the list and return a list with the dropped entries.
  - `$l():dropright(n:number):list` This function will remove the last `n` entries from the list and return a list with the dropped entries.
@@ -143,5 +148,6 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$l():zip(other:list or table or function):list` This will merge the other table (which has to be an ipairs-valid list) or list into itself if both lists have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`. If `other` is a function or wrapped function, it will call it once per iteration and merge the returned value in the described pattern.
 
 ###Wrapped strings
-Wrapped strings or stringslists can mostly be seen as lists and have all the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`). However, they do not have `concat`, `find` or `flatten`. `drop()` and `dropwhile` will return strings, `filter` will return a stringlist, and they have one extra function:
+Wrapped strings or stringslists can mostly be seen as lists and have most of the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`).
+Functions they do not have are `concat`, `find`, `flatten`, `zip` and `containskey`. All variations of `drop` and `take` will return strings, `filter` will return a stringlist, and they have one extra function:
  - `$s():split(sep:string or nil):list` This works exactly like `string.split`. 
