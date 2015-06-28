@@ -339,7 +339,7 @@ local function wrap_takefromleft(self, amt)
 end
 
 local function wrap_takefromright(self, amt)
-  return #self - amt, #self
+  return #self - amt + 1, #self
 end
 
 local function wrap_returnsecond(i, j)
