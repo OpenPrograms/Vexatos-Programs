@@ -113,6 +113,7 @@ These functions will not work directly called on a string, i.e. `string.drop("He
  - `string.map(s:string, f:function):list or map` This function calls `f` once for every character in the string, with either the character or the index and the character as parameters, and inserts whatever it returns into a new table, which will then get returned as a list if possible and a map otherwise.
  - `string.filter(s:string, f:function):stringlist` This function calls `f` once for every character in the string, with either the character or the index and the character as parameters, and, if `f` returns `true`, will insert the character into a new wrapped string which will get returned, meaning that every character `f` returns `false` on will be removed.
  - `string.drop(s:string, n:number):string` This function will remove the first `n` characters from the string and return the new string.
+ - `string.dropright(s:string, n:number):string` This function will remove the last `n` characters from the string and return the new string.
  - `string.dropwhile(s:string, f:function):string` This function will remove the first character of the string as long as `f` returns `true` on that character (or on the index and the character).
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value `f` returns will then be assigned to `m` for the next iteration.
  - `string.foldright(s:string, m:anything, f:function):anything` Exactly like `string.foldleft`, just that it starts iterating at the end of the string.
@@ -129,6 +130,7 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$():find(f:function):anything` This returns the first element of the table that `f` returns `true` on.
  - `$():shallowcopy()` This works exactly like `table.shallowcopy`.
  - `$l():drop(n:number):list` This function will remove the first `n` entries from the list and return itself with the dropped entries.
+ - `$l():dropright(n:number):list` This function will remove the last `n` entries from the list and return itself with the dropped entries.
  - `$l():dropwhile(function):list` This works exactly like `string.dropwhile`, just that it will iterate through each key/value pair in the table and will return a itself with the dropped entries.
  - `$l():reverse():list` This function will invert the list so that the last entry will be the first one etc.
  - `$l():flatten():list` This works exactly like `table.flatten`.

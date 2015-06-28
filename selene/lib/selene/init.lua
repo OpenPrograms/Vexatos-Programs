@@ -324,6 +324,32 @@ end
 -- Bulk data operations on tables
 --------
 
+-- local utility functions for more efficient code
+
+local function wrap_fromleft(self, amt)
+  return amt + 1, #self
+end
+
+local function wrap_fromright(self, amt)
+  return 1, #self - amt
+end
+
+local function wrap_returnsecond(i, j)
+  return j
+end
+
+local function wrap_returnboth(i, j)
+  return i, j
+end
+
+local function checkParCnt(parCnt)
+  if parCnt == 1 then
+    return wrap_returnsecond
+  else
+    return wrap_returnboth
+  end
+end
+
 -- Concatenates the entries of the table just like table.concat
 local function tbl_concat(self, sep, i, j)
   return table.concat(self._tbl, sep, i, j)
@@ -332,13 +358,9 @@ end
 local function tbl_foreach(self, f)
   checkType(1, self)
   checkFunc(2, f)
-  local parCnt = parCount(f, 2)
+  local parCnt = checkParCnt(parCount(f, 2))
   for i, j in mpairs(self) do
-    if parCnt == 1 then
-      f(j)
-    else
-      f(i, j)
-    end
+    f(parCnt(i, j))
   end 
 end
 
@@ -347,13 +369,9 @@ local function tbl_map(self, f)
   checkType(1, self)
   checkFunc(2, f)
   local mapped = {}
-  local parCnt = parCount(f, 2)
+  local parCnt = checkParCnt(parCount(f, 2))
   for i, j in mpairs(self) do
-    if parCnt == 1 then
-      insert(mapped, false, f(j))
-    else
-      insert(mapped, false, f(i, j))
-    end
+    insert(mapped, false, f(parCnt(i, j)))
   end
   return newListOrMap(mapped)
 end
@@ -369,27 +387,16 @@ local function tbl_filter(self, f)
     end
   end
   local filtered = {}
-  local parCnt = parCount(f, 2)
-  if parCnt == 1 then
-    for i, j in mpairs(self) do
-      if f(j) then
-        insert(filtered, list, i, j)
-      end
-    end
-  else
-    for i, j in mpairs(self) do
-      if f(i, j) then
-        insert(filtered, list, i, j)
-      end
+  local parCnt = checkParCnt(parCount(f, 2))
+  for i, j in mpairs(self) do
+    if f(parCnt(i, j)) then
+      insert(filtered, list, i, j)
     end
   end
   return newListOrMap(filtered)
 end
 
--- Removes the first amt entries of the list, returns a list
-local function tbl_drop(self, amt)
-  checkType(1, self, "list", "stringlist")
-  checkArg(2, amt, "number")
+local function wrap_drop(self, amt, wrap)
   amt = clamp(amt, 0, #self)
   if amt == 0 then return self
   elseif amt == #self then
@@ -397,34 +404,40 @@ local function tbl_drop(self, amt)
     return self
   else
     local dropped = {}
-    for i = amt + 1, #self do
+    local start, stop = wrap(self, amt)
+    for i = start, stop do
       insert(dropped, false, self._tbl[i])
     end
     return newListOrMap(dropped)
   end
+end
+  
+-- Removes the first amt entries of the list, returns a list
+local function tbl_drop(self, amt)
+  checkType(1, self, "list", "stringlist")
+  checkArg(2, amt, "number")
+  return wrap_drop(self, amt, wrap_fromleft)
+end
+
+-- Removes the last amt entries of the list, returns a list
+local function tbl_dropright(self, amt)
+  checkType(1, self, "list", "stringlist")
+  checkArg(2, amt, "number")
+  return wrap_drop(self, amt, wrap_fromright)
 end
 
 -- Removes entries while the function returns true, returns a list
 local function tbl_dropwhile(self, f)
   checkType(1, self, "list", "stringlist")
   checkFunc(2, f)
-  local parCnt = parCount(f, 2)
+  local parCnt = checkParCnt(parCount(f, 2))
   local dropped = {}
   local curr = 1
-  if parCnt == 1 then
-    for i, j in mpairs(self) do
-      curr = i
-      if not f(j) then
-        break
-      end
+  for i, j in mpairs(self) do
+    if not f(parCnt(i, j)) then
+      break
     end
-  else
-    for i, j in mpairs(self) do
-      curr = i
-      if not f(i, j) then
-        break
-      end
-    end
+    curr = i
   end
   for i = curr, #self do
     insert(dropped, false, self._tbl[i])
@@ -463,18 +476,10 @@ end
 local function tbl_find(self, f)
   checkType(1, self)
   checkFunc(2, f)
-  local parCnt = parCount(f, 2)
-  if parCnt == 1 then
-    for i,j in mpairs(self) do
-      if f(j) then
-        return j
-      end
-    end
-  else
-    for i,j in mpairs(self) do
-      if f(i,j) then
-        return j
-      end
+  local parCnt = checkParCnt(parCount(f, 2))
+  for i,j in mpairs(self) do
+    if f(parCnt(i, j)) then
+      return j
     end
   end
 end
@@ -507,15 +512,9 @@ local function tbl_zip(self, other)
   local zipped = {}
   local tp = tblType(other)
   if tp == "function" then
-    local parCnt = parCount(other, 2)
-    if parCnt == 1 then
-      for i,j in mpairs(self) do
-        table.insert(zipped, {j, f(j)})
-      end
-    else
-      for i,j in mpairs(self) do
-        table.insert(zipped, {j, f(i, j)})
-      end
+    local parCnt = checkParCnt(parCount(other, 2))
+    for i,j in mpairs(self) do
+      table.insert(zipped, {j, f(parCnt(i, j))})
     end
   elseif tp == "table" then checkList(2, other)
     assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
@@ -566,18 +565,10 @@ local function strl_filter(self, f)
   checkType(1, self, "stringlist")
   checkFunc(2, f)
   local filtered = {}
-  local parCnt = parCount(f)
-  if parCnt == 1 then
-    for i, j in mpairs(self) do
-      if f(j) then
-        insert(filtered, false, j)
-      end
-    end
-  else
-    for i, j in mpairs(self) do
-      if f(i, j) then
-        insert(filtered, false, i, j)
-      end
+  local parCnt = checkParCnt(parCount(f))
+  for i, j in mpairs(self) do
+    if f(parCnt(i, j)) then
+      insert(filtered, false, parCnt(i, j))
     end
   end
   return newStringList(filtered)
@@ -586,6 +577,12 @@ end
 local function strl_drop(self, amt)
   checkType(1, self, "stringlist")
   self = tbl_drop(self, amt)
+  return table.concat(self._tbl)
+end
+
+local function strl_dropright(self, amt)
+  checkType(1, self, "stringlist")
+  self = tbl_dropright(self, amt)
   return table.concat(self._tbl)
 end
 
@@ -603,13 +600,9 @@ end
 local function str_foreach(self, f)
   checkArg(1, self, "string")
   checkFunc(2, f)
-  local parCnt = parCount(f)
+  local parCnt = checkParCnt(parCount(f))
   for i = 1, #self do
-    if parCnt == 1 then
-      f(j)
-    else
-      f(i, j)
-    end
+    f(parCnt(i, j))
   end
 end
 
@@ -618,13 +611,9 @@ local function str_map(self, f)
   checkArg(1, self, "string")
   checkFunc(2, f)
   local mapped = {}
-  local parCnt = parCount(f)
+  local parCnt = checkParCnt(parCount(f))
   for i = 1, #self do
-    if parCnt == 1 then
-      insert(mapped, false, f(self:substring(i,i)))
-    else
-      insert(mapped, false, f(i, self:substring(i,i)))
-    end
+    insert(mapped, false, f(parCnt(i, self:substring(i,i))))
   end
   return newListOrMap(mapped)
 end
@@ -634,57 +623,47 @@ local function str_filter(self, f)
   checkArg(1, self, "string")
   checkFunc(2, f)
   local filtered = {}
-  local parCnt = parCount(f)
-  if parCnt == 1 then
-    for i = 1, #self do
-      local j = self:substring(i,i)
-      if f(j) then
-        insert(filtered, false, j)
-      end
-    end
-  else
-    for i = 1, #self do
-      local j = self:substring(i,i)
-      if f(i, j) then
-        insert(filtered, false, i, j)
-      end
+  local parCnt = checkParCnt(parCount(f))
+  for i = 1, #self do
+    local j = self:substring(i,i)
+    if f(parCnt(i, j)) then
+      insert(filtered, false, parCnt(i, j))
     end
   end
   return newStringList(filtered)
 end
 
--- Removes the first amt characters of the srting, returns a string
-local function str_drop(self, amt)
+local function wrap_str_drop(self, amt, wrap)
   checkArg(1, self, "string")
   checkArg(2, amt, "number")
   amt = clamp(amt, 0, #self)
   if amt == 0 then return self
   elseif amt == #self then return ""
-  else return self:sub(amt + 1) end
+  else return self:sub(wrap(self, amt)) end
+end
+
+-- Removes the first amt characters of the string, returns a string
+local function str_drop(self, amt)
+  return wrap_str_drop(self, amt, wrap_fromleft)
+end
+
+-- Removes the last amt characters of the string, returns a string
+local function str_dropright(self, amt)
+  return wrap_str_drop(self, amt, wrap_fromright)
 end
 
 -- Removes characters while the function returns true, returns a string
 local function str_dropwhile(self, f)
   checkArg(1, self, "string")
   checkFunc(2, f)
-  local parCnt = parCount(f)
+  local parCnt = checkParCnt(parCount(f))
   local index = 0
-  if parCnt == 1 then
-    for i = 1, #self do
-      local s = self:sub(i,i)
-      if not f(s) then
-        break
-      end
-      index = i
+  for i = 1, #self do
+    local s = self:sub(i,i)
+    if not f(parCnt(i, s)) then
+      break
     end
-  else
-    for i = 1, #self do
-      local s = self:sub(i,i)
-      if not f(i, s) then
-        break
-      end
-      index = i
-    end
+    index = i
   end
   if index == 0 then return self
   elseif index == #self then return ""
@@ -782,6 +761,7 @@ local function loadSelene(env)
   env.string.map = str_map
   env.string.filter = str_filter
   env.string.drop = str_drop
+  env.string.dropright = str_dropright
   env.string.dropwhile = str_dropwhile
   env.string.foldleft = str_foldleft
   env.string.foldright = str_foldright
@@ -803,6 +783,7 @@ local function loadSelene(env)
   _Table.map = tbl_map
   _Table.filter = tbl_filter
   _Table.drop = tbl_drop
+  _table.dropright = tbl_dropright
   _Table.dropwhile = tbl_dropwhile
   _Table.reverse = tbl_reverse
   _Table.foldleft = tbl_foldleft
@@ -823,6 +804,7 @@ local function loadSelene(env)
   _String.map = tbl_map
   _String.filter = strl_filter
   _String.drop = strl_drop
+  _String.dropright = strl_dropright
   _String.dropwhile = strl_dropwhile
   _String.reverse = tbl_reverse
   _String.foldleft = tbl_foldleft
@@ -874,6 +856,7 @@ local function unloadSelene(env)
   env.string.map = nil
   env.string.filter = nil
   env.string.drop = nil
+  env.string.dropright = nil
   env.string.dropwhile = nil
   env.string.foldleft = nil
   env.string.foldright = nil
