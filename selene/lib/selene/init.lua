@@ -907,7 +907,7 @@ local function loadSelene(env)
   _Table.map = tbl_map
   _Table.filter = tbl_filter
   _Table.drop = tbl_drop
-  _table.dropright = tbl_dropright
+  _Table.dropright = tbl_dropright
   _Table.dropwhile = tbl_dropwhile
   _Table.take = tbl_take
   _Table.takeright = tbl_takeright
