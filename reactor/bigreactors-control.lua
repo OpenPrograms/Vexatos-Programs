@@ -40,6 +40,8 @@ local term = require("term")
 --This is true if there is no available screen or the option -s is used
 local silent = not term.isAvailable()
 
+local hasCustomValues = false
+
 local function serror(msg, msg2)
   msg2 = msg2 or msg
   if silent then
@@ -57,6 +59,7 @@ do
   if #args > 0 then
     turnOn = tonumber(args[1])
     turnOff = tonumber(args[2])
+    hasCustomValues = true
   end
 end
 
@@ -78,8 +81,10 @@ if reactor.isActivelyCooled() then
     table.insert(turbines, component.proxy(addr))
   end
   maxEnergy = maxEnergyTurbine * #turbines
-  desiredSpeed = turnOn or desiredSpeed
-  acceptedSpeed = turnOff or acceptedSpeed
+  if hasCustomValues then
+    desiredSpeed = turnOn or desiredSpeed
+    acceptedSpeed = turnOff or acceptedSpeed
+  end
 else
   if turnOn < 0 or turnOn > 1 or turnOff < 0 or turnOff > 1 then
     serror("turnOn and turnOff both need to be between 0 and 1")
@@ -159,30 +164,38 @@ local function handleTurbines()
   local rotations = {}
   local shouldReactorRun = false
   for _, turbine in ipairs(turbines) do
+    if not turbine.getActive() then
+      turbine.setActive(true)
+    end
     stored = stored + turbine.getEnergyStored()
     production = production + turbine.getEnergyProducedLastTick()
     local speed = turbine.getRotorSpeed()
     table.insert(rotations, speed)
-    if not shouldReactorRun and speed < (desiredSpeed - acceptedSpeed) then
-      shouldReactorRun = true
-    end
-    local flowRate = turbine getFluidFlowRateMax()
+
+    local flowRate = turbine.getFluidFlowRateMax()
     local flowMax = turbine.getFluidFlowRateMaxMax()
     if speed > (desiredSpeed + acceptedSpeed) then
       if flowRate > 0 then
         turbine.setFluidFlowRateMax(0)
       end
       shutPorts = shutPorts + 1
-    elseif flowRate < flowMax then
-      turbine.setFluidFlowRateMax(flowMax)
+    else
+      if flowRate < flowMax then
+        turbine.setFluidFlowRateMax(flowMax)
+      end
+      if not shouldReactorRun then
+        shouldReactorRun = true
+      end
     end
-    if speed > (desiredSpeed - acceptedSpeed) then
+    if speed < (desiredSpeed - acceptedSpeed) and turbine.getInductorEngaged() then
+      turbine.setInductorEngaged(false)
+    else
+      engagedCoils = engagedCoils + 1
+    end
+    if speed > desiredSpeed then
       if not turbine.getInductorEngaged() then
         turbine.setInductorEngaged(true)
       end
-      engagedCoils = engagedCoils + 1
-    elseif turbine.getInductorEngaged() then
-      turbine.setInductorEngaged(false)
     end
   end
   
