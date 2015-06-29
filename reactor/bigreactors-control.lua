@@ -255,6 +255,10 @@ while true do
       term.write("\nReactor shut down.\n")
     end
     reactor.setActive(false)
+    for _, turbine in ipairs(turbines) do
+      turbine.setFluidFlowRateMax(turbine.turbine.getFluidFlowRateMaxMax())
+      turbine.setInductorEngaged(true)
+    end
     os.exit()
   end
   os.sleep(1)
