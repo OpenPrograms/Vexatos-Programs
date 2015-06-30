@@ -8,7 +8,7 @@ Usage:
   If you have turbines connected to the computer and the reactor is in steam-producing mode, it will automatically detect that.
   In turbine mode, it will try to keep the turbines at a certain speed.
     bigreactors-control [-s] [desiredSpeed [, acceptedSpeed] ]
-  desiredSpeed then allows you to set the desired rotations per minute. it will default to 1800.
+  desiredSpeed then allows you to set the desired rotations per minute. it will default to 1790.
   acceptedSpeed is the amount the turbine's rotation speed may vary from the desired speed before the program starts reacting. Defaults to 50.
 Author: Vexatos
 ]]
@@ -24,7 +24,7 @@ local maxEnergy = 10000000
 --The maximum amount of energy a turbine can store
 local maxEnergyTurbine = 1000000
 --The desired rotations per minute of a turbine if the program runs in turbine mode
-local desiredSpeed = 1800
+local desiredSpeed = 1790
 --The amount the turbine's rotation speed may vary from the desired speed before the program starts reacting
 local acceptedSpeed = 50
 
