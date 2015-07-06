@@ -832,6 +832,7 @@ local function bfor(one, two, three)
   checkArg(1, one, "number")
   checkArg(2, two, "number")
   checkArg(3, three, "number")
+  if not bit32 then return end
   return bit32.bor(bit32.band(bit32.bnot(one), two, three), bit32.band(one, bit32.bnot(two), three), bit32.band(one, two, bit32.bnot(three)))
 end
 
@@ -899,8 +900,10 @@ local function loadSelene(env)
   env.table.range = tbl_range
   env.table.zipped = tbl_zipped
 
-  env.bit32.bfor = bfor
-  env.bit32.nfor = nfor
+  if env.bit32 then
+    env.bit32.bfor = bfor
+    env.bit32.nfor = nfor
+  end
 
   _Table.concat = tbl_concat
   _Table.foreach = tbl_foreach
@@ -1009,8 +1012,10 @@ local function unloadSelene(env)
   env.table.range = nil
   env.table.zipped = nil
 
-  env.bit32.bfor = nil
-  env.bit32.nfor = nil
+  if env.bit32 then
+    env.bit32.bfor = nil
+    env.bit32.nfor = nil
+  end
 end
 
 if not _selene or not _selene.initDone then

@@ -99,7 +99,7 @@ This is a list of the functions available on wrapped tables or strings as specif
  - `checkArg(n:number, obj:anything, types:string...)` This function errors when `obj` does not match any of the specified types. `n` is the index of the parameter, used for a more descriptive error message.
 
 ###bit32
-Firstly, Selene adds two convenient functions to the `bit32` library, called fish-or or `for`:
+Firstly, Selene adds two convenient functions to the `bit32` library (these functions are not available in Lua 5.3+), called fish-or or `for`:
  - `bit32.bfor(n1:number, n2:number, n3:number):number` This functions returns the bitwise fish-or of its operands. A bit will be 1 if two out of three of the operands' bits are 1.
  - `bit32.nfor(n1:anything, n2:anything, n3:anything):boolean` This returns `true` if two out of three of the operands are not `nil` and not `false`
 
