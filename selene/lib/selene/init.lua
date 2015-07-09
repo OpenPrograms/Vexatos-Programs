@@ -646,7 +646,7 @@ local function str_map(self, f)
   local mapped = {}
   local parCnt = checkParCnt(parCount(f))
   for i = 1, #self do
-    insert(mapped, false, f(parCnt(i, self:substring(i,i))))
+    insert(mapped, false, f(parCnt(i, self:sub(i,i))))
   end
   return newListOrMap(mapped)
 end
@@ -658,7 +658,7 @@ local function str_filter(self, f)
   local filtered = {}
   local parCnt = checkParCnt(parCount(f))
   for i = 1, #self do
-    local j = self:substring(i,i)
+    local j = self:sub(i,i)
     if f(parCnt(i, j)) then
       insert(filtered, false, parCnt(i, j))
     end
