@@ -755,12 +755,7 @@ end
 
 local function str_contains(self, val)
   checkArg(1, self, "string")
-  for i = 1, #self do
-    if self:sub(i,i) == val then
-      return true
-    end
-  end
-  return false
+  return string.find(self, val, 1, true) ~= nil
 end
 
 local function str_count(self, f)

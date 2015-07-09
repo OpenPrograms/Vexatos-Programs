@@ -122,6 +122,10 @@ These functions will work directly called on a string, i.e. `string.drop("Hello"
  - `string.foreach(s:string, f:function)` This calls `f` once for every character in the string, with either the character or the index and the character as parameters.
  - `string.map(s:string, f:function):list or map` This function calls `f` once for every character in the string, with either the character or the index and the character as parameters, and inserts whatever it returns into a new table, which will then get returned as a list if possible and a map otherwise.
  - `string.filter(s:string, f:function):string` This function calls `f` once for every character in the string, with either the character or the index and the character as parameters, and, if `f` returns `true`, will insert the character into a new string which will get returned, meaning that every character `f` returns `false` on will be removed.
+ - `string.contains(val:string):boolean` This returns true if the string contains the string `val`.
+ - `string.count(f:function):number` This returns the amount of characters in the string that `f` returns `true` on.
+ - `string.exists(f:function):boolean` This returns true if `f` returns `true` on any of the characters.
+ - `string.forall(f:function):boolean` This returns true if `f` returns `true` on every character in the string.
  - `string.drop(s:string, n:number):string` This function will remove the first `n` characters from the string and return the new string.
  - `string.dropright(s:string, n:number):string` This function will remove the last `n` characters from the string and return the new string.
  - `string.dropwhile(s:string, f:function):string` This function will remove the first character of the string as long as `f` returns `true` on that character (or on the index and the character).
