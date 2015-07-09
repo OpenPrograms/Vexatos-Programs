@@ -108,6 +108,7 @@ The native `table` library got two new functions:
  - `table.shallowcopy(t:table):table` This will return a copy `t` that contains every entry `t` did contain.
  - `table.flatten(t:table):table` This will collapse one level of inner tables and merge their entries into `t`. `t` needs to be a valid list (every key in the table has to be a number valid for `ipairs`). Inner tables will only get merged if they are lists as well, tables with invalid keys will stay the way they are in the table.
  - `table.range(start:number, stop:number [, step:number]):table` This will create a range of numbers ranging from `start` to `stop`, with a step size of `step` or 1.
+ - `table.flip(t:table):table` Swaps every key in the table with its value and returns a new table.
  - `table.zipped(t1:table, t2:table):table` This will merge two tables into one if both have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`
 
 ###string
@@ -134,6 +135,7 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$():filter(f:function):list or map` This works exactly like `string.filter`, just that it will iterate through each key/value pair in the table and will return a list if possible, a map otherwise.
  - `$():foldleft(m:anything, f:function):anything` This works exactly like `string.foldleft`, just that it will iterate through each key/value pair in the table.
  - `$():foldright(m:anything, f:function):anything` TExactly like `$():foldleft`, just that it starts iterating at the end of the list.
+ - `$():flip():list or map` Swaps every key in the table with its value and returns a new wrapped table.
  - `$():find(f:function):anything` This returns the first element of the table that `f` returns `true` on.
  - `$():contains(val:anything):boolean` This returns true if the table contains `val`.
  - `$():containskey(key:anything):boolean` This returns true if the table has [key] mapped to any value that is not `nil`.

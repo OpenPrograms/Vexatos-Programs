@@ -495,6 +495,19 @@ local function tbl_reverse(self)
   return newListOrMap(reversed)
 end
 
+local function rawflip(self)
+  local flipped = {}
+  for i, j in mpairs(self) do
+    flipped[j] = i
+  end
+  return flipped
+end
+
+local function tbl_flip(self)
+  checkType(1, self)
+  return newListOrMap(rawflip(self))
+end
+
 -- Returns the accumulator
 local function tbl_foldleft(self, start, f)
   checkType(1, self)
@@ -898,6 +911,10 @@ local function loadSelene(env)
     return rawflatten(tbl)
   end
   env.table.range = tbl_range
+  env.table.flip = function(tbl)
+      checkArg(1, tbl, "table")
+      return rawflip(tbl)
+  end
   env.table.zipped = tbl_zipped
 
   if env.bit32 then
@@ -916,6 +933,7 @@ local function loadSelene(env)
   _Table.takeright = tbl_takeright
   _Table.takewhile = tbl_takewhile
   _Table.reverse = tbl_reverse
+  _Table.flip = tbl_flip
   _Table.foldleft = tbl_foldleft
   _Table.foldright = tbl_foldright
   _Table.find = tbl_find
@@ -945,6 +963,7 @@ local function loadSelene(env)
   _String.takeright = strl_takeright
   _String.takewhile = strl_takewhile
   _String.reverse = tbl_reverse
+  _String.flip = tbl_flip
   _String.foldleft = tbl_foldleft
   _String.foldright = tbl_foldright
   _String.split = function(self, sep)
@@ -1010,6 +1029,7 @@ local function unloadSelene(env)
   env.table.shallowcopy = nil
   env.table.flatten = nil
   env.table.range = nil
+  env.table.flip = nil
   env.table.zipped = nil
 
   if env.bit32 then
