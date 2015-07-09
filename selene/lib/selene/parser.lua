@@ -244,10 +244,6 @@ local function findDollars(tChunk, i, part, line, tokenlines)
     tChunk[i] = "_G._selene._newFunc"
     table.remove(tChunk, i + 1)
     table.remove(tokenlines, i+1)
-  elseif curr:find("^s") then
-    tChunk[i] = "_G._selene._newString"
-    table.remove(tChunk, i + 1)
-    table.remove(tokenlines, i+1)
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
@@ -339,7 +335,6 @@ end
   ["userdata"] = true,
   ["list"] = true,
   ["map"] = true,
-  ["stringlist"] = true,
 }
 
 local function findMatch(tChunk, i, part)
