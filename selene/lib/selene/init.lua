@@ -795,6 +795,17 @@ local function str_forall(self, f)
   return true
 end
 
+-- ipairs iterator for strings
+local function str_ipairs_iter(str, i)
+  i = i + 1
+  local s = str:sub(i, i)
+  if s and #s >= 1 then
+    return i, s
+  else
+    return nil
+  end
+end
+
 -- The famous and infamous fish-or
 local function bfor(one, two, three)
   checkArg(1, one, "number")
@@ -859,19 +870,9 @@ local function loadSelene(env)
   
   local strm = getmetatable("")
   strm.__ipairs = function(self)
-    local tbl = {}
-    for i = 1, #self do
-      tbl[i] = self:sub(i,i)
-    end
-    return ipairs(tbl)
+    return str_ipairs_iter, self, 0
   end
-  strm.__pairs = function(self)
-    local tbl = {}
-    for i = 1, #self do
-      tbl[i] = self:sub(i,i)
-    end
-    return pairs(tbl)
-  end
+  strm.__pairs = strm.__ipairs
   
   env.table.shallowcopy = shallowcopy
   env.table.flatten = function(tbl)

@@ -41,7 +41,7 @@ for i,j in ipairs(s) do
   print(i,j)
 end
 ```
-In this example, `i` would be the position of the character and `j` the character itself
+In this example, `i` would be the position of the character and `j` the character itself. Note that both `ipairs` and `pairs` iterate through the characters in the same order.
 ###Wrapped tables
 You can use `$(t: table)` to turn a table into a wrapped table to perform bulk data operations on it. If the table is a list (i.e. if every key in the table is a number valid for `ipairs`), it will automatically create a list, otherwise it will create a map.
 ```lua
