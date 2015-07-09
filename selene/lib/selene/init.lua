@@ -904,6 +904,21 @@ local function loadSelene(env)
   env.string.foldleft = str_foldleft
   env.string.foldright = str_foldright
   env.string.split = str_split
+  local strm = getmetatable("")
+  strm.__ipairs = function(self)
+    local tbl = {}
+    for i = 1, #self do
+      tbl[i] = self:sub(i,i)
+    end
+    return ipairs(tbl)
+  end
+  strm.__pairs = function(self)
+    local tbl = {}
+    for i = 1, #self do
+      tbl[i] = self:sub(i,i)
+    end
+    return pairs(tbl)
+  end
   
   env.table.shallowcopy = shallowcopy
   env.table.flatten = function(tbl)
@@ -1025,6 +1040,9 @@ local function unloadSelene(env)
   env.string.foldleft = nil
   env.string.foldright = nil
   env.string.split = nil
+  local strm = getmetatable("")
+  strm.__ipairs = nil
+  strm.__pairs = nil
   
   env.table.shallowcopy = nil
   env.table.flatten = nil
