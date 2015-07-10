@@ -244,7 +244,7 @@ local function parseFolders(pack, repo, info)
         local newPath = v["download_url"]:gsub("https?://raw.githubusercontent.com/"..nonSpecial(repo).."(.+)$", "%1"):gsub("/*$",""):gsub("^/*","")
         tFiles[newPath] = relPath
       elseif v["type"] == "dir" then
-        local newFiles = unserializeFiles(getFolderTable(repo, relPath.."/"..v["name"], branch), repo, branch, fs.concat(relPath, v["name"]))
+        local newFiles = unserializeFiles(getFolderTable(repo, namePath.."/"..v["name"], branch), repo, namePath, branch, fs.concat(relPath, v["name"]))
         for p,q in pairs(newFiles) do
           tFiles[p] = q
         end
