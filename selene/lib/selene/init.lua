@@ -72,7 +72,7 @@ end
 local function isList(t)
   checkArg(1, t, "table")
   local tp = tblType(t)
-  if tp == "list" or tp == "string" then
+  if tp == "list" or tp == "stringlist" then
     return true
   elseif tp == "map" then
     return false
@@ -110,15 +110,14 @@ local function insert(tbl, fuzzyList, key, value)
 end
 
 local function mpairs(obj)
-  local t = type(obj)
-  if (t == "table" and isList(obj)) or t == "string" then
+  if type(obj) == "table" and isList(obj) then
     return ipairs(obj)
   else
     return pairs(obj)
   end
 end
 
-local validMaps = {map = true, list = true}
+local validMaps = {map = true, list = true, stringlist = true}
 
 local function lpairs(obj)
   if validMaps[tblType(obj)] then
@@ -128,7 +127,7 @@ local function lpairs(obj)
   end
 end
 
-local allMaps = {"map", "list"}
+local allMaps = {"map", "list", "stringlist"}
 
 -- Errors is the value is not a valid type (list or map)
 local function checkType(n, have, ...)
@@ -223,6 +222,14 @@ local fmt = {
 }
 
 local _Table = {}
+local _String = {}
+
+local smt = shallowcopy(mt)
+smt.ltype = "stringlist"
+smt.__call = function(str)
+  return table.concat(str._tbl)
+end
+smt.__tostring = smt.__call
 
 --------
 -- Initialization functions
@@ -237,6 +244,39 @@ local function new(t)
   end
   newObj._tbl = t
   setmetatable(newObj, mt)
+  return newObj
+end
+
+local function newStringList(s)
+  checkArg(1, s, "table", "nil")
+  s = s or {}
+  local newObj = {}
+  for i,j in pairs(_String) do
+    newObj[i] = j
+  end
+  newObj._tbl = {}
+  for i = 1, #s do
+    if not s[i] or type(s[i]) ~= "string" or #s[i] > 1 then
+      error("[Selene] could not create list: bad table key: "..i.." is not a character", 2)
+    end
+    newObj._tbl[i] = s[i]
+  end
+  setmetatable(newObj, smt)
+  return newObj
+end
+
+local function newString(s)
+  checkArg(1, s, "string", "nil")
+  s = s or ""
+  local newObj = {}
+  for i,j in pairs(_String) do
+    newObj[i] = j
+  end
+  newObj._tbl = {}
+  for i = 1, #s do
+    newObj._tbl[i] = s:sub(i,i)
+  end
+  setmetatable(newObj, smt)
   return newObj
 end
 
@@ -396,7 +436,7 @@ local function wrap_handleDropReturn(self, amt, wrap, whenzero, whenall, normal)
 end
 
 local function wrap_dropOrTake(self, amt, wrap, whenzero, whenall)
-  checkType(1, self, "list")
+  checkType(1, self, "list", "stringlist")
   checkArg(2, amt, "number")
   amt = clamp(amt, 0, #self)
   return wrap_handleDropReturn(self, amt, wrap, whenzero, whenall, wrap_tableDropReturn)
@@ -424,7 +464,7 @@ end
 
 -- Removes entries while the function returns true, returns a list
 local function wrap_dropOrTakeWhile(self, f, wrap, whenzero, whenall)
-  checkType(1, self, "list")
+  checkType(1, self, "list", "stringlist")
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
   local curr = 0
@@ -447,7 +487,7 @@ end
 
 --inverts the list
 local function tbl_reverse(self)
-  checkType(1, self, "list")
+  checkType(1, self, "list", "stringlist")
   local reversed = {}
   for i, j in mpairs(self) do
     table.insert(reversed, 1, j)
@@ -519,8 +559,8 @@ local function tbl_flatten(self)
 end
 
 local function tbl_zip(self, other)
-  checkType(1, self, "list")
-  checkType(2, other, "list", "function", "table")
+  checkType(1, self, "list", "stringlist")
+  checkType(2, other, "list", "stringlist", "function", "table")
   local zipped = {}
   local tp = tblType(other)
   if tp == "function" then
@@ -619,6 +659,53 @@ local function tbl_zipped(one, two)
     table.insert(zipped, {one[i], two[i]})
   end
   return zipped
+end
+
+--------
+-- Bulk data operations on stringlists
+--------
+
+local function strl_filter(self, f)
+  checkType(1, self, "stringlist")
+  checkFunc(2, f)
+  local filtered = {}
+  local parCnt = checkParCnt(parCount(f))
+  for i, j in mpairs(self) do
+    if f(parCnt(i, j)) then
+      insert(filtered, false, parCnt(i, j))
+    end
+  end
+  return newStringList(filtered)
+end
+
+local function strl_dropOrTake(self, amt , wrap)
+  checkType(1, self, "stringlist")
+  self = wrap(self, amt)
+  return table.concat(self._tbl)
+end
+
+local function strl_drop(self, amt)
+  return strl_dropOrTake(self, amt, tbl_drop)
+end
+
+local function strl_dropright(self, amt)
+  return strl_dropOrTake(self, amt, tbl_dropright)
+end
+
+local function strl_take(self, amt)
+  return strl_dropOrTake(self, amt, tbl_take)
+end
+
+local function strl_takeright(self, amt)
+  return strl_dropOrTake(self, amt, tbl_takeright)
+end
+
+local function strl_dropwhile(self, f)
+  return strl_dropOrTake(self, f, tbl_dropwhile)
+end
+
+local function strl_takewhile(self, f)
+  return strl_dropOrTake(self, f, tbl_takewhile)
 end
 
 --------
@@ -806,6 +893,10 @@ local function str_ipairs_iter(str, i)
   end
 end
 
+local function str_iter(str)
+  return str_ipairs_iter, str, 0
+end
+
 -- The famous and infamous fish-or
 local function bfor(one, two, three)
   checkArg(1, one, "number")
@@ -832,15 +923,22 @@ end
 -- Adding to global variables
 --------
 
-local VERSION = "Selene 1.0.2"
+local VERSION = "Selene 1.0.3"
 
 local function loadSelene(env)
   if not env or type(env) ~= "table" then env = _G end
   if env._selene and env._selene.initDone then return end
   if not env._selene then env._selene = {} end
 
-  env._selene._new = newListOrMap
+  env._selene._new = function(t)
+    if type(t) == "string" then
+      return newString(t)
+    else
+      return newListOrMap(t)
+    end
+  end
   if not env.checkArg then env.checkArg = checkArg end
+  env._selene._newString = newString
   env._selene._newList = newList
   env._selene._newFunc = newFunc
   env._selene._VERSION = VERSION
@@ -867,25 +965,8 @@ local function loadSelene(env)
   env.string.count = str_count
   env.string.exists = str_exists
   env.string.forall = str_forall
-  
-  local success, strm = pcall(getmetatable, "")
-  if success and strm then
-    strm.__ipairs = function(self)
-      return str_ipairs_iter, self, 0
-    end
-    strm.__pairs = strm.__ipairs
-  end
-  env.string.iter = function(str)
-    local tbl = {}
-    tbl.str = str
-    local strm = getmetatable(tbl)
-    strm.__ipairs = function(self)
-      return str_ipairs_iter, self.str, 0
-    end
-    strm.__pairs = strm.__ipairs
-    return tbl
-  end
-  
+  env.string.iter = str_iter
+
   env.table.shallowcopy = shallowcopy
   env.table.flatten = function(tbl)
     checkList(1, tbl)
@@ -933,6 +1014,28 @@ local function loadSelene(env)
     newObj._tbl = shallowcopy(self._tbl)
     return newObj
   end
+
+  _String.foreach = tbl_foreach
+  _String.map = tbl_map
+  _String.filter = strl_filter
+  _String.drop = strl_drop
+  _String.dropright = strl_dropright
+  _String.dropwhile = strl_dropwhile
+  _String.take = strl_take
+  _String.takeright = strl_takeright
+  _String.takewhile = strl_takewhile
+  _String.reverse = tbl_reverse
+  _String.flip = tbl_flip
+  _String.foldleft = tbl_foldleft
+  _String.foldright = tbl_foldright
+  _String.split = function(self, sep)
+    checkType(1, self, "stringlist")
+    return str_split(tostring(self), sep)
+  end
+  _String.contains = tbl_contains
+  _String.count = tbl_count
+  _String.exists = tbl_exists
+  _String.forall = tbl_forall
 
   if env._selene and env._selene.liveMode then
     env._selene.oldload = env.load
@@ -988,14 +1091,8 @@ local function unloadSelene(env)
   env.string.count = nil
   env.string.exists = nil
   env.string.forall = nil
-  
-  local success, strm = pcall(getmetatable, "")
-  if success and strm then
-    strm.__ipairs = nil
-    strm.__pairs = nil
-  end
   env.string.iter = nil
-  
+
   env.table.shallowcopy = nil
   env.table.flatten = nil
   env.table.range = nil

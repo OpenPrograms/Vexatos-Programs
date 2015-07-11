@@ -5,9 +5,8 @@ This is a Lua library I made for more convenient functional programming. It prov
 ###Table of contents
   - [Syntax](#syntax)
     - [Smart self-calling](#smart-self-calling)
-    - [Iterable strings](#iterable-strings)
     - [Wrapped tables](#wrapped-tables)
-      - [What you can do with wrapped tables](#what-you-can-do-with-wrapped-tables)
+      - [What you can do with wrapped tables or strings](#what-you-can-do-with-wrapped-tables-or-strings)
       - [Utility functions for wrapped tables](#utility-functions-for-wrapped-tables)
     - [Lambdas](#lambdas)
       - [Utility functions for wrapped and normal functions](#utility-functions-for-wrapped-and-normal-functions)
@@ -18,6 +17,7 @@ This is a Lua library I made for more convenient functional programming. It prov
     - [table](#table)
     - [string](#string)
     - [Wrapped tables](#wrapped-tables-1)
+    - [Wrapped strings](#wrapped-strings)
 
 #Syntax
 This is a list of the special syntax available in Selene.
@@ -33,38 +33,42 @@ Which equates
 local s = "Hello World"
 local r = s:reverse()
 ```
-###Iterable strings
-`pairs` and `ipairs` now work on strings. Strings are recognized as a list of characters.
-```lua
-local s = "Hello World"
-for i,j in ipairs(s) do
-  print(i,j)
-end
-```
-In this example, `i` would be the position of the character and `j` the character itself. Note that both `ipairs` and `pairs` iterate through the characters in the same order.
 ###Wrapped tables
-You can use `$(t: table)` to turn a table into a wrapped table to perform bulk data operations on it. If the table is a list (i.e. if every key in the table is a number valid for `ipairs`), it will automatically create a list, otherwise it will create a map.
+You can use `$(t: table or string)` to turn a table or a string into a wrapped table or string to perform bulk data operations on them. If the table is a list (i.e. if every key in the table is a number valid for `ipairs`), it will automatically create a list, otherwise it will create a map.
 ```lua
 local t = {"one", "two"}
 t = $(t) -- Will create a list
 local p = {a="one", b="two"}
 p = $(p) -- Will create a map
+local s = "Fish"
+s = $(s) -- Will create a wrapped string, you can iterate through each character just like you can using a list.
 ```
-If you want to enforce a certain type of wrapped table, you can use `$l()` to create a list. If the wrapped table of the specific type cannot be created for some reason, the function will error.
+If you want to enforce a certain type of wrapped table, you can use `$l()` to create a list and `$s()` to create a wrapped string. If the wrapped table of the specific type cannot be created for some reason, the function will error.
 
-Turning a wrapped table back into a normal table is quite easy:
+Turning a wrapped table or string back into a normal table or string is quite easy:
 ```lua
 t = t() -- Calling the table like a function turns it back into a normal table
 p = p:$ -- This also creates a table again
-s = s.$ -- This is the third way of getting back your table.
+s = s.$ -- This is the third way of getting back your string or table.
+s = tostring(s) -- This is a way of getting back strings from wrapped strings.
 ```
-####What you can do with wrapped tables
+A note about wrapped strings: If you call `pairs` or `ipairs` with a wrapped string as a parameter, it will iterate through every character in the string.
+####What you can do with wrapped tables or strings
 See [the functions documentation](#functions) for methods may call on wrapped tables or strings.
+There are now two different ways to iterate through the characters of a string:
+```lua
+for index, char in ipairs($(s)) do
+  -- Here, s is being turned into a wrapped string
+end
+for index, char in string.iter(s) do
+  -- Here, string.iter is being used to give a string iterator
+end
+```
 ####Utility functions for wrapped tables
- - `ltype(t: anything):string` This functions works just like `type`, just that it, if it finds a wrapped table, may return `"map"` or `"list"`.
+ - `ltype(t: anything):string` This functions works just like `type`, just that it, if it finds a wrapped table, may return `"map"`, `"list"` or `"stringlist"`.
  - `checkType(n:number, t:anything, types:string...)` This function errors when `t` does not match any of the specified types of wrapped tables. `n` is the index of the parameter, used for a more descriptive error message. if no type is specified, it will error if `t` is not a wrapped table.
- - `lpairs(t:wrapped table)` This functions works just like `ipairs` when called with a list or string and just like `pairs` when called with anything else.
- - `isList(t:wrapped table or table):boolean` This function returns true if the table is either a list (as a wrapped table), a normal table that can be turned into a list (i.e. if every key in the table is a number valid for `ipairs`) or if it is a string (a string being a list of characters)
+ - `lpairs(t:wrapped table)` This functions works just like `ipairs` when called with a list or wrapped string and just like `pairs` when called with anything else.
+ - `isList(t:wrapped table or table):boolean` This function returns true if the table is either a list (as a wrapped table) or a normal table that can be turned into a list (i.e. if every key in the table is a number valid for `ipairs`)
 
 ###Lambdas
 Lambdas are wrapped in `()` brackets and always look like `(<var1> [, var2, ...] -> <operation>)`. Alternatively to the `->` you can also use `=>`.
@@ -98,7 +102,7 @@ end
 If the table can be iterated through with `ipairs` (i.e. if every key in the table is a number valid for `ipairs`), it will choose that, otherwise it will choose `pairs`.
 
 #Functions
-This is a list of the functions available on wrapped tables as specified [here](#syntax) as well as functions added to native libraries.
+This is a list of the functions available on wrapped tables or strings as specified [here](#syntax) as well as functions added to native libraries.
 
 ###global
  - `checkArg(n:number, obj:anything, types:string...)` This function errors when `obj` does not match any of the specified types. `n` is the index of the parameter, used for a more descriptive error message.
@@ -117,7 +121,7 @@ The native `table` library got two new functions:
  - `table.zipped(t1:table, t2:table):table` This will merge two tables into one if both have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`
 
 ###string
-These functions will work directly called on a string, i.e. `string.drop("Hello", 2)` will work and `("Hello"):drop(2)` will as well.
+These functions will not work directly called on a string, i.e. `string.drop("Hello", 2)` will work but `("Hello"):drop(2)` will not. For that, use wrapped strings.
 `function` may be a Lua function or a wrapped function (for instance a lambda).
  - `string.foreach(s:string, f:function)` This calls `f` once for every character in the string, with either the character or the index and the character as parameters.
  - `string.map(s:string, f:function):list or map` This function calls `f` once for every character in the string, with either the character or the index and the character as parameters, and inserts whatever it returns into a new table, which will then get returned as a list if possible and a map otherwise.
@@ -135,6 +139,7 @@ These functions will work directly called on a string, i.e. `string.drop("Hello"
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value `f` returns will then be assigned to `m` for the next iteration.
  - `string.foldright(s:string, m:anything, f:function):anything` Exactly like `string.foldleft`, just that it starts iterating at the end of the string.
  - `string.split(s:string, sep:string or nil):list` This function splits the string whenever it encounters the specified separator, returning a list of every part of the string.
+ - `string.iter(s:string)` This functions returns an iterator over the string `s`, so you can iterate through the characters of the string using `for index, char in string.iter(s) do ... end`.
 
 ###Wrapped tables
 These are the functions you can call on wrapped tables. `$()` represents a wrapped list or map, `$l()` represents a list.
@@ -161,3 +166,8 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$l():reverse():list` This function will invert the list so that the last entry will be the first one etc.
  - `$l():flatten():list` This works exactly like `table.flatten`.
  - `$l():zip(other:list or table or function):list` This will merge the other table (which has to be an ipairs-valid list) or list into itself if both lists have the same length, in the pattern `{{t1[1], t2[1]}, {t1[2], t2[2]}, ...}`. If `other` is a function or wrapped function, it will call it once per iteration and merge the returned value in the described pattern.
+
+###Wrapped strings
+Wrapped strings or stringslists can mostly be seen as lists and have most of the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`).
+Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter` will return a stringlist, and they have one extra function:
+ - `$s():split(sep:string or nil):list` This works exactly like `string.split`. 
