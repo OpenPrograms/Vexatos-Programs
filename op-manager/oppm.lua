@@ -396,8 +396,11 @@ local function installPackage(pack,path,update)
       if not string.find(j,"^//") then
         for k,v in pairs(tPacks[pack]) do
           if k==i then
-            path = string.gsub(fs.path(v),j.."/?$","/")
-            break
+            local proposed_path, matches = string.gsub(fs.path(v),j.."/?[^/]+$","/")
+            if matches == 1 then
+              path = proposed_path
+              break
+            end
           end
         end
         if path then
