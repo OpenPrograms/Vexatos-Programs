@@ -868,11 +868,23 @@ local function loadSelene(env)
   env.string.exists = str_exists
   env.string.forall = str_forall
   
-  local strm = getmetatable("")
-  strm.__ipairs = function(self)
-    return str_ipairs_iter, self, 0
+  local success, strm = pcall(getmetatable, "")
+  if success and strm then
+    strm.__ipairs = function(self)
+      return str_ipairs_iter, self, 0
+    end
+    strm.__pairs = strm.__ipairs
   end
-  strm.__pairs = strm.__ipairs
+  env.string.iter = function(str)
+    local tbl = {}
+    tbl.str = str
+    local strm = getmetatable(tbl)
+    strm.__ipairs = function(self)
+      return str_ipairs_iter, self.str, 0
+    end
+    strm.__pairs = strm.__ipairs
+    return tbl
+  end
   
   env.table.shallowcopy = shallowcopy
   env.table.flatten = function(tbl)
@@ -977,9 +989,12 @@ local function unloadSelene(env)
   env.string.exists = nil
   env.string.forall = nil
   
-  local strm = getmetatable("")
-  strm.__ipairs = nil
-  strm.__pairs = nil
+  local success, strm = pcall(getmetatable, "")
+  if success and strm then
+    strm.__ipairs = nil
+    strm.__pairs = nil
+  end
+  env.string.iter = nil
   
   env.table.shallowcopy = nil
   env.table.flatten = nil
