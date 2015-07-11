@@ -486,13 +486,17 @@ local function tbl_takewhile(self, f)
 end
 
 --inverts the list
-local function tbl_reverse(self)
+local function wrap_reverse(self, newl)
   checkType(1, self, "list", "stringlist")
   local reversed = {}
   for i, j in mpairs(self) do
     table.insert(reversed, 1, j)
   end
-  return newListOrMap(reversed)
+  return newl(reversed)
+end
+
+local function tbl_reverse(self)
+  return wrap_reverse(self, newListOrMap)
 end
 
 local function rawflip(self)
@@ -706,6 +710,10 @@ end
 
 local function strl_takewhile(self, f)
   return strl_dropOrTake(self, f, tbl_takewhile)
+end
+
+local function strl_reverse(self)
+  return wrap_reverse(self, newStringList)
 end
 
 --------
@@ -1003,7 +1011,7 @@ local function loadSeleneConstructs()
   _String.take = strl_take
   _String.takeright = strl_takeright
   _String.takewhile = strl_takewhile
-  _String.reverse = tbl_reverse
+  _String.reverse = strl_reverse
   _String.flip = tbl_flip
   _String.foldleft = tbl_foldleft
   _String.foldright = tbl_foldright
@@ -1034,6 +1042,7 @@ local function loadSelene(env)
   env._selene._newList = newList
   env._selene._newFunc = newFunc
   env._selene._VERSION = VERSION
+  env._selene._parse = parse
   env.ltype = tblType
   env.checkType = checkType
   env.checkFunc = checkFunc
@@ -1048,15 +1057,16 @@ local function loadSelene(env)
     env._selene.oldload = env.load
     env.load = function(ld, src, mv, loadenv) 
       if env._selene and env._selene.liveMode then
-        local s = ""
         if type(ld) == "function" then
+          local s = ""
           local nws = ld()
           while nws and #nws > 0 do
             s = s .. nws
             nws = ld()
           end
+          ld = s
         end
-        ld = parse(ld)
+        ld = env._selene._parse(ld)
       end
       return env._selene.oldload(ld, src, mv, loadenv)
     end

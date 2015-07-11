@@ -169,5 +169,5 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
 
 ###Wrapped strings
 Wrapped strings or stringslists can mostly be seen as lists and have most of the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`).
-Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter` will return a stringlist, and they have one extra function:
+Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter` and `reverse` will return stringlists, and they have one extra function:
  - `$s():split(sep:string or nil):list` This works exactly like `string.split`. 
