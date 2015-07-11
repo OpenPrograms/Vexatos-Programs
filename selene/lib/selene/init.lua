@@ -925,30 +925,7 @@ end
 
 local VERSION = "Selene 1.0.3"
 
-local function loadSelene(env)
-  if not env or type(env) ~= "table" then env = _G end
-  if env._selene and env._selene.initDone then return end
-  if not env._selene then env._selene = {} end
-
-  env._selene._new = function(t)
-    if type(t) == "string" then
-      return newString(t)
-    else
-      return newListOrMap(t)
-    end
-  end
-  if not env.checkArg then env.checkArg = checkArg end
-  env._selene._newString = newString
-  env._selene._newList = newList
-  env._selene._newFunc = newFunc
-  env._selene._VERSION = VERSION
-  env.ltype = tblType
-  env.checkType = checkType
-  env.checkFunc = checkFunc
-  env.parCount = parCount
-  env.lpairs = lpairs
-  env.isList = isList
-
+local function patchNativeLibs(env)
   env.string.foreach = str_foreach
   env.string.map = str_map
   env.string.filter = str_filter
@@ -974,8 +951,8 @@ local function loadSelene(env)
   end
   env.table.range = tbl_range
   env.table.flip = function(tbl)
-      checkArg(1, tbl, "table")
-      return rawflip(tbl)
+    checkArg(1, tbl, "table")
+    return rawflip(tbl)
   end
   env.table.zipped = tbl_zipped
 
@@ -983,7 +960,9 @@ local function loadSelene(env)
     env.bit32.bfor = bfor
     env.bit32.nfor = nfor
   end
+end
 
+local function loadSeleneConstructs()
   _Table.concat = tbl_concat
   _Table.foreach = tbl_foreach
   _Table.map = tbl_map
@@ -1036,6 +1015,34 @@ local function loadSelene(env)
   _String.count = tbl_count
   _String.exists = tbl_exists
   _String.forall = tbl_forall
+end
+
+local function loadSelene(env)
+  if not env or type(env) ~= "table" then env = _G end
+  if env._selene and env._selene.initDone then return end
+  if not env._selene then env._selene = {} end
+
+  env._selene._new = function(t)
+    if type(t) == "string" then
+      return newString(t)
+    else
+      return newListOrMap(t)
+    end
+  end
+  if not env.checkArg then env.checkArg = checkArg end
+  env._selene._newString = newString
+  env._selene._newList = newList
+  env._selene._newFunc = newFunc
+  env._selene._VERSION = VERSION
+  env.ltype = tblType
+  env.checkType = checkType
+  env.checkFunc = checkFunc
+  env.parCount = parCount
+  env.lpairs = lpairs
+  env.isList = isList
+
+  patchNativeLibs(env)
+  loadSeleneConstructs(env)
 
   if env._selene and env._selene.liveMode then
     env._selene.oldload = env.load
