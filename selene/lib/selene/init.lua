@@ -1023,6 +1023,10 @@ local function loadSeleneConstructs()
   _String.count = tbl_count
   _String.exists = tbl_exists
   _String.forall = tbl_forall
+  _String.iter = function(self)
+    checkType(1, self, "stringlist")
+    return str_iter(tostring(self))
+  end
 end
 
 local function loadSelene(env)

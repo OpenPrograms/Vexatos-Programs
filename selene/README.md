@@ -55,13 +55,16 @@ s = tostring(s) -- This is a way of getting back strings from wrapped strings.
 A note about wrapped strings: If you call `pairs` or `ipairs` with a wrapped string as a parameter, it will iterate through every character in the string.
 ####What you can do with wrapped tables or strings
 See [the functions documentation](#functions) for methods may call on wrapped tables or strings.
-There are now two different ways to iterate through the characters of a string:
+There are now three different ways to iterate through the characters of a string:
 ```lua
 for index, char in ipairs($(s)) do
   -- Here, s is being turned into a wrapped string
 end
 for index, char in string.iter(s) do
   -- Here, string.iter is being used to give a string iterator
+end
+for index, char in $(s):iter do
+  -- Here, the wrapped string's iterator function is being used.
 end
 ```
 ####Utility functions for wrapped tables
@@ -169,5 +172,6 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
 
 ###Wrapped strings
 Wrapped strings or stringslists can mostly be seen as lists and have most of the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`).
-Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter` and `reverse` will return stringlists, and they have one extra function:
- - `$s():split(sep:string or nil):list` This works exactly like `string.split`. 
+Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter` and `reverse` will return stringlists, and they have two new functions:
+ - `$s():split(sep:string or nil):list` This works exactly like `string.split`.
+ - `$s():iter()` This works exactly like `string.iter`.
