@@ -204,6 +204,9 @@ local mt = {
 
 local lmt = shallowcopy(mt)
 lmt.ltype = "list"
+lmt.__index = function(tbl, key)
+  return tbl._tbl[key]
+end
 
 local fmt = {
   __call = function(fnc, ...)
@@ -230,6 +233,7 @@ smt.__call = function(str)
   return table.concat(str._tbl)
 end
 smt.__tostring = smt.__call
+smt.__index = lmt.__index
 
 --------
 -- Initialization functions
