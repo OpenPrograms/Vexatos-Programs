@@ -838,16 +838,9 @@ local function str_split(self, sep)
   checkArg(2, sep, "string", "number", "nil")
   local t = {}
   if type(sep) == "number" then
-    local lt = {}
-    for i = 1, #self do
-      table.insert(lt, self:sub(i,i))
-      if #lt >= sep then
-        table.insert(t, table.concat(lt))
-        lt = {}
-      end
-    end
-    if #lt > 0 then
-      table.insert(t, table.concat(lt))
+    while #self > 0 do
+      table.insert(t, self:sub(1, sep))
+      self = self:sub(sep+1)
     end
   else
     sep = sep or ""
