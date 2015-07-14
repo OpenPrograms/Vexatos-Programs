@@ -835,19 +835,31 @@ end
 -- Splits the string, returns a list
 local function str_split(self, sep)
   checkArg(1, self, "string")
-  checkArg(2, sep, "string", "nil")
+  checkArg(2, sep, "string", "number", "nil")
   local t = {}
-  local i = 1
-  sep = sep or ""
-  local p
-  if #sep <= 0 then
-    p = "."
+  if type(sep) == "number" then
+    local lt = {}
+    for i = 1, #self do
+      table.insert(lt, self:sub(i,i))
+      if #lt >= sep then
+        table.insert(t, table.concat(lt))
+        lt = {}
+      end
+    end
+    if #lt > 0 then
+      table.insert(t, table.concat(lt))
+    end
   else
-    p = "([^"..sep.."]+)"
-  end
-  for str in self:gmatch(p) do
-    t[i] = str
-    i = i + 1
+    sep = sep or ""
+    local p
+    if #sep <= 0 then
+      p = "."
+    else
+      p = "([^"..sep.."]+)"
+    end
+    for str in self:gmatch(p) do
+      table.insert(t, str)
+    end
   end
   return newList(t)
 end

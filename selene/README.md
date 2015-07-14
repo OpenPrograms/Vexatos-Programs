@@ -141,7 +141,7 @@ These functions will not work directly called on a string, i.e. `string.drop("He
  - `string.takewhile(s:string, f:function):string` This function will iterate through the characters of the string and add the characters to the returned string as long as `f` returns `true` on the currently checked character (or on the index and the character).
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value `f` returns will then be assigned to `m` for the next iteration.
  - `string.foldright(s:string, m:anything, f:function):anything` Exactly like `string.foldleft`, just that it starts iterating at the end of the string.
- - `string.split(s:string, sep:string or nil):list` This function splits the string whenever it encounters the specified separator, returning a list of every part of the string.
+ - `string.split(s:string, sep:string or number or nil):list` This function splits the string whenever it encounters the specified separator, returning a list of every part of the string. If `sep` is a number, it will split the string into chunks of the specified length.
  - `string.iter(s:string)` This functions returns an iterator over the string `s`, so you can iterate through the characters of the string using `for index, char in string.iter(s) do ... end`.
 
 ###Wrapped tables
