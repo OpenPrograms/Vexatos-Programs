@@ -70,7 +70,7 @@ local function tokenize(value, stripcomments)
       table.insert(tokens, token)
       table.insert(tokenlines, lines)
       token = ""
-    elseif char == "]" and string.find(token, "%]=*$") and #(string.match(token, "%]=*$")..char) == #quoted then
+    elseif char == "]" and string.find(token, "%]=*$") and quoted and string.find(quoted, "^%[=*%[") and #(string.match(token, "%]=*$")..char) == #quoted then
       quoted = false
       token = token .. char
       table.insert(tokens, token)
