@@ -259,7 +259,7 @@ end
 
 local function findSelfCall(tChunk, i, part, line)
   if not tChunk[i + 2] then tChunk[i + 2] = "" end
-  if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) then
+  if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("^[%w%(\"'{%[%$_]") then
     tChunk[i+1] = tChunk[i+1].."()"
     return true
   end

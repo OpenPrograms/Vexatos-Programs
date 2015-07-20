@@ -33,6 +33,7 @@ Which equates
 local s = "Hello World"
 local r = s:reverse()
 ```
+Because it is possible to call methods without brackets (for example using `$("Hello"):drop 4` instead of `$("Hello"):drop(4)`), Selene will only add the empty brackets if the part of code following the method call would be invalid as a call without brackets.
 ###Wrapped tables
 You can use `$(t: table or string)` to turn a table or a string into a wrapped table or string to perform bulk data operations on them. If the table is a list (i.e. if every key in the table is a number valid for `ipairs`), it will automatically create a list, otherwise it will create a map.
 ```lua
