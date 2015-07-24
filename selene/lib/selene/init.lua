@@ -532,6 +532,23 @@ local function tbl_foldright(self, start, f)
   return tbl_foldleft(tbl_reverse(self), start, f)
 end
 
+local function tbl_reduceleft(self, f)
+  checkType(1, self, "list", "stringlist")
+  checkFunc(2, f)
+  if #self <= 0 then
+    error("[Selene] bad argument #1 (got empty list)", 2)
+  end
+  local m = self[1]
+  for i = 2, #self do
+    m = f(m, self._tbl[i])
+  end
+  return m
+end
+
+local function tbl_reduceright(self, f)
+   return tbl_reduceleft(tbl_reverse(self), f)
+end
+
 -- Returns the first element of the table that matches the function.
 local function tbl_find(self, f)
   checkType(1, self)
@@ -832,6 +849,23 @@ local function str_foldright(self, start, f)
   return str_foldleft(self:reverse(), start, f)
 end
 
+local function str_reduceleft(self, f)
+  checkArg(1, self, "string")
+  checkFunc(3, f)
+  if #self <= 0 then
+    error("[Selene] bad argument #1 (got empty string)", 2)
+  end
+  local m = self:sub(1,1)
+  for i = 2, #self do
+    m = f(m, self:sub(i,i))
+  end
+  return m
+end
+
+local function str_reduceright(self, f)
+  return str_reduceleft(self:reverse(), f)
+end
+
 -- Splits the string, returns a list
 local function str_split(self, sep)
   checkArg(1, self, "string")
@@ -952,8 +986,12 @@ local function patchNativeLibs(env)
   env.string.take = str_take
   env.string.takeright = str_takeright
   env.string.takewhile = str_takewhile
+  env.string.fold = str_foldleft
   env.string.foldleft = str_foldleft
   env.string.foldright = str_foldright
+  env.string.reduce = str_reduceleft
+  env.string.reduceleft = str_reduceleft
+  env.string.reduceright = str_reduceright
   env.string.split = str_split
   env.string.contains = str_contains
   env.string.count = str_count
@@ -992,8 +1030,12 @@ local function loadSeleneConstructs()
   _Table.takewhile = tbl_takewhile
   _Table.reverse = tbl_reverse
   _Table.flip = tbl_flip
+  _Table.fold = tbl_foldleft
   _Table.foldleft = tbl_foldleft
   _Table.foldright = tbl_foldright
+  _Table.reduce = tbl_reduceleft
+  _Table.reduceleft = tbl_reduceleft
+  _Table.reduceright = tbl_reduceright
   _Table.find = tbl_find
   _Table.flatten = tbl_flatten
   _Table.zip = tbl_zip
@@ -1024,6 +1066,9 @@ local function loadSeleneConstructs()
   _String.flip = tbl_flip
   _String.foldleft = tbl_foldleft
   _String.foldright = tbl_foldright
+  _String.reduce = tbl_reduceleft
+  _String.reduceleft = tbl_reduceleft
+  _String.reduceright = tbl_reduceright
   _String.split = function(self, sep)
     checkType(1, self, "stringlist")
     return str_split(tostring(self), sep)
@@ -1114,8 +1159,12 @@ local function unloadSelene(env)
   env.string.take = nil
   env.string.takeright = nil
   env.string.takewhile = nil
+  env.string.fold = nil
   env.string.foldleft = nil
   env.string.foldright = nil
+  env.string.reduce = nil
+  env.string.reduceleft = nil
+  env.string.reduceright = nil
   env.string.split = nil
   env.string.contains = nil
   env.string.count = nil
