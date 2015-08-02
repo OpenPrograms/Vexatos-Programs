@@ -42,27 +42,26 @@ local function tokenize(value, stripcomments)
         token = ""
       end
       lines = lines + 1
-    elseif char == "]" and quoted == "--[[" and string.find(token, "%]$") then
+    elseif char == "]" and string.find(token, "%]=*$") and string.find(quoted, "^--%[=*%[") and #(string.match(token, "%]=*$")..char) == #quoted - 2 then
       quoted = false
-      if token ~= "" then
-        token = token..char
-        if stripcomments then
-          for w in token:gmatch("\n") do
-            lines = lines + 1
-          end
-        else
-          table.insert(tokens, token)
-          table.insert(tokenlines, lines)
-          skiplines[#tokenlines] = {}
-          for w in token:gmatch("\n") do
-            lines = lines + 1
-            table.insert(skiplines[#tokenlines], lines)
-          end
+      token = token..char
+      if stripcomments then
+        for w in token:gmatch("\n") do
+          lines = lines + 1
         end
-        token = ""
+      else
+        table.insert(tokens, token)
+        table.insert(tokenlines, lines)
+        skiplines[#tokenlines] = {}
+        for w in token:gmatch("\n") do
+          lines = lines + 1
+          table.insert(skiplines[#tokenlines], lines)
+        end
       end
-    elseif char == "[" and quoted == "--" and string.find(token, "%-%-%[$") then
-      quoted = quoted .. "[["
+      token = ""
+    elseif char == "[" and quoted == "--" and string.find(token, "%-%-%[=*$") then
+      local s = string.match(token, "%[=*$")
+      quoted = quoted..s..char
       token = token .. char
     elseif char == quoted then -- end of quoted string
       quoted = false
