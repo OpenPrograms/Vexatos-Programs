@@ -1085,7 +1085,7 @@ end
 
 local function loadSelene(env)
   if not env or type(env) ~= "table" then env = _G end
-  if env._selene and env._selene.initDone then return end
+  if env._selene and env._selene.isLoaded then return end
   if not env._selene then env._selene = {} end
 
   env._selene._new = function(t)
@@ -1129,12 +1129,12 @@ local function loadSelene(env)
       return env._selene.oldload(ld, src, mv, loadenv)
     end
   end
-  env._selene.initDone = true
+  env._selene.isLoaded = true
 end
 
 local function unloadSelene(env)
   if not env or type(env) ~= "table" then env = _G end
-  if not env._selene or not env._selene.initDone then return end
+  if not env._selene or not env._selene.isLoaded then return end
   if env._selene and env._selene.liveMode and env._selene.oldload then
     env.load = env._selene.oldload
   end
@@ -1184,7 +1184,7 @@ local function unloadSelene(env)
   end
 end
 
-if not _selene or not _selene.initDone then
+if not _selene or not _selene.isLoaded then
   loadSelene(_G or _ENV)
 end
 
@@ -1193,7 +1193,7 @@ selene.parse = parse
 selene.load = loadSelene
 selene.unload = unloadSelene
 selene.isLoaded = function()
-  return _selene and _selene.initDone
+  return _selene and _selene.isLoaded
 end
 
 return selene

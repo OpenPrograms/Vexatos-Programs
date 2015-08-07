@@ -13,10 +13,13 @@ end
 
 local function injectConfig()
   local config = [[
+-- Set this to true to load Selene on this computer on startup.
+local enableSelene = false
 -- Set this to false to disable live interpreting of Selene files. Will require compiling manually using selene.parse
 local liveMode = false
 
-return liveMode
+
+return enableSelene, liveMode
 ]]
   local path = "/etc/selene.cfg"
   if not fs.exists(path) then
@@ -29,9 +32,12 @@ return liveMode
 end
 
 local function readConfig()
-  local success, mode = pcall(dofile, "/etc/selene.cfg")
+  local success, enable, mode = pcall(dofile, "/etc/selene.cfg")
   if success then
     _G._selene.liveMode = mode
+    if enable then
+      require("selene")
+    end
   else
     _G._selene.liveMode = false
   end
@@ -52,4 +58,3 @@ local function load()
 end
 
 load()
-require("selene")
