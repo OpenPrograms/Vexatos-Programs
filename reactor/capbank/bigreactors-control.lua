@@ -1,5 +1,6 @@
 --[[
-Simple BigReactors Reactor Control program
+Simple BigReactors Reactor Control program.
+Automatically detects an EnderIO Capacitor Bank if one is connected and adds that to the energy storage calculation.
 Usage:
   bigreactors-control [-s] [turnOn turnOff]
   -s makes the program not print anything to the screen; will automatically enable this option if there is no screen and GPU available
@@ -82,10 +83,15 @@ local function fancyNumber(n)
 end
 
 --Displays numbers with a special offset
-local function offset(num, d)
+local function offset(num, d, ext)
+  if num == nil then return "" end
   if type(num) ~= "string" then
     if type(num) == "number" then
-      return offset(tostring(math.floor(num)), d)
+      if ext then
+        return offset(tostring(math.floor(num * 100) / 100), d)
+      else
+        return offset(tostring(math.floor(num)), d)
+      end
     end
     return offset(tostring(num), d)
   end
@@ -143,7 +149,7 @@ while true do
     term.clearLine()
     term.write("Currently stored:   " .. offset(fancyNumber(stored), offs) .. " RF\n", false)
     term.clearLine()
-    term.write("Stored percentage:  " .. offset(stored / maxStored * 100, offs) .. " %\n", false)
+    term.write("Stored percentage:  " .. offset(stored / maxStored * 100, offs, true) .. " %\n", false)
     term.clearLine()
     term.write("Current Production: " .. offset(fancyNumber(reactor.getEnergyProducedLastTick()), offs) .. " RF/t", false)
   end
