@@ -139,6 +139,7 @@ These functions will not work directly called on a string, i.e. `string.drop("He
  - `string.take(s:string, n:number):string` This function will take the first `n` characters from the string and return the new string.
  - `string.takeright(s:string, n:number):string` This function will take the last `n` characters from the string and return the new string.
  - `string.takewhile(s:string, f:function):string` This function will iterate through the characters of the string and add the characters to the returned string as long as `f` returns `true` on the currently checked character (or on the index and the character).
+ - `string.slice(s:string, start:number or nil, stop:number or nil [, step:number or nil]):list` This function will slice a specific range of characters out of the string and return it, starting at index `start` and stopping at `stop` with a step size of `step`. `step` must not be 0 but can be negative. `start` will default to `1` if it is `nil` or `0`, `stop` will default to the length of the string. Negative values for `start` or `stop` are interpreted as indexing backwards, from the end of the string.
  - `string.fold(s:string, m:anything, f:function):anything` This works exactly like `string.foldleft`.
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value which `f` returns will then be assigned to `m` for the next iteration. Returns the final value of `m`.
  - `string.foldright(s:string, m:anything, f:function):anything` This works exactly like `string.foldleft`, just that it starts iterating at the end of the string.
@@ -167,10 +168,11 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
  - `$():shallowcopy()` This works exactly like `table.shallowcopy`.
  - `$l():drop(n:number):list` This function will remove the first `n` entries from the list and return a list with the dropped entries.
  - `$l():dropright(n:number):list` This function will remove the last `n` entries from the list and return a list with the dropped entries.
- - `$l():dropwhile(function):list` This works exactly like `string.dropwhile`, just that it will iterate through each key/value pair in the table and will return a list with the dropped entries.
+ - `$l():dropwhile(f:function):list` This works exactly like `string.dropwhile`, just that it will iterate through each key/value pair in the table and will return a list with the dropped entries.
  - `$l():take(n:number):list` This function will take the first `n` entries from the list and return a list with the taken entries.
  - `$l():takeright(n:number):list` This function will take the last `n` entries from the list and return a list with the taken entries.
- - `$l():takewhile(function):list` This works exactly like `string.takewhile`, just that it will iterate through each key/value pair in the table and will return a list with the taken entries.
+ - `$l():takewhile(f:function):list` This works exactly like `string.takewhile`, just that it will iterate through each key/value pair in the table and will return a list with the taken entries.
+ - `$l():slice(start:number or nil, stop:number or nil [, step:number or nil]):list` This function will slice a specific range of indices out of the list and return it, starting at index `start` and stopping at `stop` with a step size of `step`. `step` must not be 0 but can be negative. `start` will default to `1` if it is `nil` or `0`, `stop` will default to the length of the list. Negative values for `start` or `stop` are interpreted as indexing backwards, from the end of the list.
  - `$l():reduce(f:function):anything` This works exactly like `$l():reduceleft`.
  - `$l():reduceleft(f:function):anything` This function must not be called with an empty list. If the length of the list is `1`, it will return the only value in the list. Otherwise, this function assigns the first entry in the list to a local variable m and calls `f` for every other value in the list, with `m` and that value as parameters. The value which `f` returns will then be assigned to `m` for the next iteration. Returns the final value of `m`.
  - `$l():reduceright(f:function):anything` This works exactly like `$l():reduceleft`, just that it starts at the end of the list.

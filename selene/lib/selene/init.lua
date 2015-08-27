@@ -158,11 +158,11 @@ local function checkFunc(n, have, ...)
     local msg = string.format("[Selene] bad argument #%d (function expected, got %s)", n, have)
     error(msg, 2)
   end
-  
+
   if #{...} == 0 then return end
 
   local level = 3
-  
+
   local function check(want, ...)
     checkArg(level, want, "number")
     if not want then
@@ -381,7 +381,7 @@ local function tbl_foreach(self, f)
   local parCnt = checkParCnt(parCount(f, 2))
   for i, j in mpairs(self) do
     f(parCnt(i, j))
-  end 
+  end
 end
 
 -- Iterates through each entry and calls the function, returns a list if possible, a map otherwise
@@ -445,7 +445,7 @@ local function wrap_dropOrTake(self, amt, wrap, whenzero, whenall)
   amt = clamp(amt, 0, #self)
   return wrap_handleDropReturn(self, amt, wrap, whenzero, whenall, wrap_tableDropReturn)
 end
-  
+
 -- Removes the first amt entries of the list, returns a list
 local function tbl_drop(self, amt)
   return wrap_dropOrTake(self, amt, wrap_dropfromleft, wrap_returnself, wrap_returnempty)
@@ -487,6 +487,32 @@ end
 
 local function tbl_takewhile(self, f)
   return wrap_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_returnempty, wrap_returnself)
+end
+
+local function wrap_makeSliceable(self, start, stop, step)
+  step = step or 1
+  if step == 0 then
+    error("[Selene] bad argument #4 (got step size of 0)", 3)
+  end
+  start = math.max(1, (not start or start == 0) and 1 or (start < 0 and start + #self + 1) or start)
+  stop = math.min(#self, (not stop or stop == 0) and #self or (stop < 0 and stop + #self + 1) or stop)
+  return start, stop, step
+end
+
+local function tbl_slice(self, start, stop, step)
+  checkType(1, self, "list", "stringlist")
+  checkArg(2, start, "number", "nil")
+  checkArg(3, stop "number", "nil")
+  checkArg(4, step, "number", "nil")
+  start, stop, step = wrap_makeSliceable(self, start, stop, step)
+  if start > stop then
+    return newListOrMap({})
+  end
+  local sliced = {}
+  for i = start, stop, step do
+    insert(sliced, false, self._tbl[i])
+  end
+  return newListOrMap(sliced)
 end
 
 --inverts the list
@@ -833,6 +859,22 @@ local function str_takewhile(self, f)
   return wrap_str_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_emptystring, wrap_returnself)
 end
 
+local function str_slice(self, start, stop, step)
+  checkArg(1, self, "string")
+  checkArg(2, start, "number", "nil")
+  checkArg(3, stop "number", "nil")
+  checkArg(4, step, "number", "nil")
+  start, stop, step = wrap_makeSliceable(self, start, stop, step)
+  if start > stop then
+    return newListOrMap({})
+  end
+  local sliced = {}
+  for i = start, stop, step do
+    insert(sliced, false, self:sub(i,i))
+  end
+  return newListOrMap(sliced)
+end
+
 -- Returns the accumulator
 local function str_foldleft(self, start, f)
   checkArg(1, self, "string")
@@ -986,6 +1028,7 @@ local function patchNativeLibs(env)
   env.string.take = str_take
   env.string.takeright = str_takeright
   env.string.takewhile = str_takewhile
+  env.string.slice = str_slice
   env.string.fold = str_foldleft
   env.string.foldleft = str_foldleft
   env.string.foldright = str_foldright
@@ -1028,6 +1071,7 @@ local function loadSeleneConstructs()
   _Table.take = tbl_take
   _Table.takeright = tbl_takeright
   _Table.takewhile = tbl_takewhile
+  _Table.slice = tbl_slice
   _Table.reverse = tbl_reverse
   _Table.flip = tbl_flip
   _Table.fold = tbl_foldleft
@@ -1062,6 +1106,7 @@ local function loadSeleneConstructs()
   _String.take = strl_take
   _String.takeright = strl_takeright
   _String.takewhile = strl_takewhile
+  _String.slice = tbl_slice
   _String.reverse = strl_reverse
   _String.flip = tbl_flip
   _String.foldleft = tbl_foldleft
@@ -1113,7 +1158,7 @@ local function loadSelene(env)
 
   if env._selene and env._selene.liveMode then
     env._selene.oldload = env.load
-    env.load = function(ld, src, mv, loadenv) 
+    env.load = function(ld, src, mv, loadenv)
       if env._selene and env._selene.liveMode then
         if type(ld) == "function" then
           local s = ""
@@ -1159,6 +1204,7 @@ local function unloadSelene(env)
   env.string.take = nil
   env.string.takeright = nil
   env.string.takewhile = nil
+  env.string.slice = nil
   env.string.fold = nil
   env.string.foldleft = nil
   env.string.foldright = nil
