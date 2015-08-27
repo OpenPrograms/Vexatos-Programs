@@ -489,30 +489,33 @@ local function tbl_takewhile(self, f)
   return wrap_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_returnempty, wrap_returnself)
 end
 
-local function wrap_makeSliceable(self, start, stop, step)
+local function wrap_rawslice(self, start, stop, step, sub)
+  checkArg(2, start, "number", "nil")
+  checkArg(3, stop, "number", "nil")
+  checkArg(4, step, "number", "nil")
   step = step or 1
   if step == 0 then
     error("[Selene] bad argument #4 (got step size of 0)", 3)
   end
   start = math.max(1, (not start or start == 0) and 1 or (start < 0 and start + #self + 1) or start)
   stop = math.min(#self, (not stop or stop == 0) and #self or (stop < 0 and stop + #self + 1) or stop)
-  return start, stop, step
-end
-
-local function tbl_slice(self, start, stop, step)
-  checkType(1, self, "list", "stringlist")
-  checkArg(2, start, "number", "nil")
-  checkArg(3, stop "number", "nil")
-  checkArg(4, step, "number", "nil")
-  start, stop, step = wrap_makeSliceable(self, start, stop, step)
   if start > stop then
     return newListOrMap({})
   end
   local sliced = {}
   for i = start, stop, step do
-    insert(sliced, false, self._tbl[i])
+    insert(sliced, false, sub(self, i))
   end
   return newListOrMap(sliced)
+end
+
+local function wrap_returnselfentry(self, i)
+  return self._tbl[i]
+end
+
+local function tbl_slice(self, start, stop, step)
+  checkType(1, self, "list", "stringlist")
+  return wrap_rawslice(self, start, stop, step, wrap_returnselfentry)
 end
 
 --inverts the list
@@ -859,20 +862,13 @@ local function str_takewhile(self, f)
   return wrap_str_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_emptystring, wrap_returnself)
 end
 
+local function wrap_str_slicepart(self, i)
+  return self:sub(i,i)
+end
+
 local function str_slice(self, start, stop, step)
   checkArg(1, self, "string")
-  checkArg(2, start, "number", "nil")
-  checkArg(3, stop "number", "nil")
-  checkArg(4, step, "number", "nil")
-  start, stop, step = wrap_makeSliceable(self, start, stop, step)
-  if start > stop then
-    return newListOrMap({})
-  end
-  local sliced = {}
-  for i = start, stop, step do
-    insert(sliced, false, self:sub(i,i))
-  end
-  return newListOrMap(sliced)
+  return wrap_rawslice(self, start, stop, step, wrap_str_slicepart)
 end
 
 -- Returns the accumulator
