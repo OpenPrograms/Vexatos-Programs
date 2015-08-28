@@ -497,8 +497,8 @@ local function wrap_rawslice(self, start, stop, step, sub, returned)
   if step == 0 then
     error("[Selene] bad argument #4 (got step size of 0)", 3)
   end
-  start = math.max(1, (not start or start == 0) and 1 or (start < 0 and start + #self + 1) or start)
-  stop = math.min(#self, (not stop or stop == 0) and #self or (stop < 0 and stop + #self + 1) or stop)
+  start = math.max(1, (not start or start == 0) and (step < 0 and #self or 1) or (start < 0 and start + #self + 1) or start)
+  stop = math.min(#self, (not stop or stop == 0) and (step < 0 and 1 or #self) or (stop < 0 and stop + #self + 1) or stop)
   if start > stop then
     return newListOrMap({})
   end
