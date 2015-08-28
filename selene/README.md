@@ -139,7 +139,7 @@ These functions will not work directly called on a string, i.e. `string.drop("He
  - `string.take(s:string, n:number):string` This function will take the first `n` characters from the string and return the new string.
  - `string.takeright(s:string, n:number):string` This function will take the last `n` characters from the string and return the new string.
  - `string.takewhile(s:string, f:function):string` This function will iterate through the characters of the string and add the characters to the returned string as long as `f` returns `true` on the currently checked character (or on the index and the character).
- - `string.slice(s:string, start:number or nil, stop:number or nil [, step:number or nil]):list` This function will slice a specific range of characters out of the string and return it, starting at index `start` and stopping at `stop` with a step size of `step`. `step` must not be 0 but can be negative. `start` will default to `1` if it is `nil` or `0`, `stop` will default to the length of the string. Negative values for `start` or `stop` are interpreted as indexing backwards, from the end of the string.
+ - `string.slice(s:string, start:number or nil, stop:number or nil [, step:number or nil]):stringlist` This function will slice a specific range of characters out of the string and return it, starting at index `start` and stopping at `stop` with a step size of `step`. `step` must not be 0 but can be negative. `start` will default to `1` if it is `nil` or `0`, `stop` will default to the length of the string. Negative values for `start` or `stop` are interpreted as indexing backwards, from the end of the string.
  - `string.fold(s:string, m:anything, f:function):anything` This works exactly like `string.foldleft`.
  - `string.foldleft(s:string, m:anything, f:function):anything` This function calls `f` once for every character in the string, with `m` and that character as parameters. The value which `f` returns will then be assigned to `m` for the next iteration. Returns the final value of `m`.
  - `string.foldright(s:string, m:anything, f:function):anything` This works exactly like `string.foldleft`, just that it starts iterating at the end of the string.
@@ -182,6 +182,6 @@ These are the functions you can call on wrapped tables. `$()` represents a wrapp
 
 ###Wrapped strings
 Wrapped strings or stringslists can mostly be seen as lists and have most of the functions wrapped tables have (including `drop`, `dropwhile` and `reverse`).
-Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter` and `reverse` will return stringlists, and they have two new functions:
+Functions they do not have are `concat`, `find`, `flatten`, `zip`, `containskey` and `flip`. All variations of `drop` and `take` will return strings, `filter`, `slice` and `reverse` will return stringlists, and they have two new functions:
  - `$s():split(sep:string or nil):list` This works exactly like `string.split`.
  - `$s():iter()` This works exactly like `string.iter`.

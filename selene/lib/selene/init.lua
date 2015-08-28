@@ -489,7 +489,7 @@ local function tbl_takewhile(self, f)
   return wrap_dropOrTakeWhile(self, f, wrap_takefromleft, wrap_returnempty, wrap_returnself)
 end
 
-local function wrap_rawslice(self, start, stop, step, sub)
+local function wrap_rawslice(self, start, stop, step, sub, returned)
   checkArg(2, start, "number", "nil")
   checkArg(3, stop, "number", "nil")
   checkArg(4, step, "number", "nil")
@@ -506,7 +506,7 @@ local function wrap_rawslice(self, start, stop, step, sub)
   for i = start, stop, step do
     insert(sliced, false, sub(self, i))
   end
-  return newListOrMap(sliced)
+  return returned(sliced)
 end
 
 local function wrap_returnselfentry(self, i)
@@ -515,7 +515,7 @@ end
 
 local function tbl_slice(self, start, stop, step)
   checkType(1, self, "list", "stringlist")
-  return wrap_rawslice(self, start, stop, step, wrap_returnselfentry)
+  return wrap_rawslice(self, start, stop, step, wrap_returnselfentry, newListOrMap)
 end
 
 --inverts the list
@@ -762,6 +762,11 @@ local function strl_takewhile(self, f)
   return strl_dropOrTake(self, f, tbl_takewhile)
 end
 
+local function strl_slice(self, start, stop, step)
+  checkType(1, self, "stringlist")
+  return wrap_rawslice(self, start, stop, step, wrap_returnselfentry, newStringList)
+end
+
 local function strl_reverse(self)
   return wrap_reverse(self, newStringList)
 end
@@ -868,7 +873,7 @@ end
 
 local function str_slice(self, start, stop, step)
   checkArg(1, self, "string")
-  return wrap_rawslice(self, start, stop, step, wrap_str_slicepart)
+  return wrap_rawslice(self, start, stop, step, wrap_str_slicepart, newStringList)
 end
 
 -- Returns the accumulator
@@ -1102,7 +1107,7 @@ local function loadSeleneConstructs()
   _String.take = strl_take
   _String.takeright = strl_takeright
   _String.takewhile = strl_takewhile
-  _String.slice = tbl_slice
+  _String.slice = strl_slice
   _String.reverse = strl_reverse
   _String.flip = tbl_flip
   _String.foldleft = tbl_foldleft
