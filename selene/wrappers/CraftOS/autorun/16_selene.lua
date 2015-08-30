@@ -36,7 +36,7 @@ local function readConfig()
   if success then
     _G._selene.liveMode = mode
     if enable then
-      require("selene")
+      require("selene").load()
     end
   else
     _G._selene.liveMode = false

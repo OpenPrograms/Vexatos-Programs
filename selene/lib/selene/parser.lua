@@ -14,24 +14,24 @@ local selenep = {}
 -- Taken from text.lua and improved
 
 local function trim(value) -- from http://lua-users.org/wiki/StringTrim
-  local from = string.match(value, "^%s*()")
-  return from > #value and "" or string.match(value, ".*%S", from)
+local from = string.match(value, "^%s*()")
+return from > #value and "" or string.match(value, ".*%S", from)
 end
 
 local function tokenize(value, stripcomments)
   if not type(stripcomments) == "boolean" then stripcomments = true end
-  if not value:find("\n$") then value = value.."\n" end
+  if not value:find("\n$") then value = value .. "\n" end
   local tokenlines, lines, skiplines = {}, 1, {}
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
     local char = unicode.sub(value, i, i)
     if escaped then -- escaped character
-      escaped = false
-      token = token .. char
+    escaped = false
+    token = token .. char
     elseif char == "\\" and quoted ~= "'" then -- escape character?
-      escaped = true
-      token = token .. char
+    escaped = true
+    token = token .. char
     elseif char == "\n" and quoted == "--" then
       quoted = false
       if token ~= "" then
@@ -42,9 +42,9 @@ local function tokenize(value, stripcomments)
         token = ""
       end
       lines = lines + 1
-    elseif char == "]" and string.find(token, "%]=*$") and string.find(quoted, "^--%[=*%[") and #(string.match(token, "%]=*$")..char) == #quoted - 2 then
+    elseif char == "]" and string.find(token, "%]=*$") and string.find(quoted, "^--%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted - 2 then
       quoted = false
-      token = token..char
+      token = token .. char
       if stripcomments then
         for w in token:gmatch("\n") do
           lines = lines + 1
@@ -61,15 +61,15 @@ local function tokenize(value, stripcomments)
       token = ""
     elseif char == "[" and quoted == "--" and string.find(token, "%-%-%[=*$") then
       local s = string.match(token, "%[=*$")
-      quoted = quoted..s..char
+      quoted = quoted .. s .. char
       token = token .. char
     elseif char == quoted then -- end of quoted string
-      quoted = false
-      token = token .. char
-      table.insert(tokens, token)
-      table.insert(tokenlines, lines)
-      token = ""
-    elseif char == "]" and string.find(token, "%]=*$") and quoted and string.find(quoted, "^%[=*%[") and #(string.match(token, "%]=*$")..char) == #quoted then
+    quoted = false
+    token = token .. char
+    table.insert(tokens, token)
+    table.insert(tokenlines, lines)
+    token = ""
+    elseif char == "]" and string.find(token, "%]=*$") and quoted and string.find(quoted, "^%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted then
       quoted = false
       token = token .. char
       table.insert(tokens, token)
@@ -86,23 +86,23 @@ local function tokenize(value, stripcomments)
       token = token .. char
     elseif char == "-" and string.find(token, "%-$") and not quoted then
       local s = string.match(token, "%-$")
-      quoted = s..char
+      quoted = s .. char
       start = i - #s
       token = token .. char
     elseif (char == "[") and string.find(token, "%[=*$") and not quoted then -- derpy quote
-      local s = string.match(token, "%[=*$")
-      quoted = s..char
-      start = i - #s
-      token = token .. char
+    local s = string.match(token, "%[=*$")
+    quoted = s .. char
+    start = i - #s
+    token = token .. char
     elseif string.find(char, "%s") and not quoted then -- delimiter
-      if token ~= "" then
-        table.insert(tokens, token)
-        table.insert(tokenlines, lines)
-        token = ""
-      end
-      if char == "\n" then
-        lines = lines + 1
-      end
+    if token ~= "" then
+      table.insert(tokens, token)
+      table.insert(tokenlines, lines)
+      token = ""
+    end
+    if char == "\n" then
+      lines = lines + 1
+    end
     elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
       if token ~= "" then
         table.insert(tokens, token)
@@ -113,12 +113,12 @@ local function tokenize(value, stripcomments)
       table.insert(tokenlines, lines)
     elseif string.find(char, "[%->]") and string.find(token, "[%-=<]$") and not quoted then
       table.insert(tokens, token:sub(1, #token - 1))
-      table.insert(tokens, token:sub(#token)..char)
+      table.insert(tokens, token:sub(#token) .. char)
       table.insert(tokenlines, lines)
       table.insert(tokenlines, lines)
       token = ""
     else -- normal char
-      token = token .. char
+    token = token .. char
     end
   end
   if quoted then
@@ -136,8 +136,8 @@ local function tokenize(value, stripcomments)
       local l = tokenlines[i]
       table.remove(tokenlines, i)
     else
-     tokens[i] = trim(tokens[i])
-     i = i + 1
+      tokens[i] = trim(tokens[i])
+      i = i + 1
     end
   end
   return tokens, tokenlines, skiplines
@@ -151,7 +151,7 @@ local varPattern = "[%a_][%w_]*"
 local function perror(msg, lvl)
   msg = msg or "unknown error"
   lvl = lvl or 1
-  error("[Selene] error while parsing: "..msg, lvl + 1)
+  error("[Selene] error while parsing: " .. msg, lvl + 1)
 end
 
 local function bracket(tChunk, plus, minus, step, result, incr, start)
@@ -166,9 +166,9 @@ local function bracket(tChunk, plus, minus, step, result, incr, start)
     end
     if brackets > 0 then
       if incr > 0 then
-        result = result.." "..curr
+        result = result .. " " .. curr
       else
-        result = curr.." "..result
+        result = curr .. " " .. result
       end
       step = step + incr
       curr = tChunk[step]
@@ -180,7 +180,7 @@ end
 local function split(self, sep)
   local t = {}
   local i = 1
-  for str in self:gmatch("([^"..sep.."]+)") do
+  for str in self:gmatch("([^" .. sep .. "]+)") do
     t[i] = trim(str)
     i = i + 1
   end
@@ -189,7 +189,6 @@ end
 
 local function tryAddReturn(code, stripcomments)
   local tChunk, msg = tokenize(code, stripcomments)
-  chunk = nil
   if not tChunk then
     perror(msg)
   end
@@ -199,7 +198,7 @@ local function tryAddReturn(code, stripcomments)
       return code
     end
   end
-  return "return "..code
+  return "return " .. code
 end
 
 local function findLambda(tChunk, i, part, line, tokenlines, stripcomments)
@@ -212,16 +211,16 @@ local function findLambda(tChunk, i, part, line, tokenlines, stripcomments)
   local funcode, step = bracket(tChunk, "(", ")", step, "", 1)
   local stop = step
   if not funcode:find("return", 1, true) then
-    funcode = "return "..funcode
+    funcode = "return " .. funcode
   else
     funcode = tryAddReturn(funcode, stripcomments)
   end
   for _, s in ipairs(params) do
-    if not s:find("^"..varPattern .. "$") then
-      perror("invalid lambda at index "..i.. " (line "..line.."): invalid parameters: "..table.concat(params, ","))
+    if not s:find("^" .. varPattern .. "$") then
+      perror("invalid lambda at index " .. i .. " (line " .. line .. "): invalid parameters: " .. table.concat(params, ","))
     end
   end
-  local func = "_G._selene._newFunc(function("..table.concat(params, ",")..") "..funcode.." end, "..tostring(#params)..")"
+  local func = "_G._selene._newFunc(function(" .. table.concat(params, ",") .. ") " .. funcode .. " end, " .. tostring(#params) .. ")"
   for i = start, stop do
     table.remove(tChunk, start)
     table.remove(tokenlines, start)
@@ -238,28 +237,28 @@ local function findDollars(tChunk, i, part, line, tokenlines)
   elseif curr:find("^l") then
     tChunk[i] = "_G._selene._newList"
     table.remove(tChunk, i + 1)
-    table.remove(tokenlines, i+1)
+    table.remove(tokenlines, i + 1)
   elseif curr:find("^f") then
     tChunk[i] = "_G._selene._newFunc"
     table.remove(tChunk, i + 1)
-    table.remove(tokenlines, i+1)
+    table.remove(tokenlines, i + 1)
   elseif curr:find("^s") then
     tChunk[i] = "_G._selene._newString"
     table.remove(tChunk, i + 1)
-    table.remove(tokenlines, i+1)
+    table.remove(tokenlines, i + 1)
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
   else
-    perror("invalid $ at index "..i.. " (line "..line..")")
+    perror("invalid $ at index " .. i .. " (line " .. line .. ")")
   end
   return true
 end
 
 local function findSelfCall(tChunk, i, part, line)
   if not tChunk[i + 2] then tChunk[i + 2] = "" end
-  if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) and not (tChunk[i-1] and tChunk[i-1]:find("^:")) then
-    tChunk[i+1] = tChunk[i+1].."()"
+  if tChunk[i + 1]:find(varPattern) and not tChunk[i + 2]:find("(", 1, true) and not (tChunk[i - 1] and tChunk[i - 1]:find("^:")) then
+    tChunk[i + 1] = tChunk[i + 1] .. "()"
     return true
   end
   return false
@@ -273,11 +272,11 @@ local function findTernary(tChunk, i, part, line, tokenlines)
   local case, step = bracket(tChunk, "(", ")", step, "", 1)
   local stop = step
   if not case:find(":", 1, true) then
-    perror("invalid ternary at index "..step.. " (line "..line.."): missing colon ':'")
+    perror("invalid ternary at index " .. step .. " (line " .. line .. "): missing colon ':'")
   end
   local trueCase = case:sub(1, case:find(":", 1, true) - 1)
   local falseCase = case:sub(case:find(":", 1, true) + 1)
-  local ternary = "(function() if "..cond.." then return "..trueCase.." else return "..falseCase.." end end)()"
+  local ternary = "(function() if " .. cond .. " then return " .. trueCase .. " else return " .. falseCase .. " end end)()"
   for i = start, stop do
     table.remove(tChunk, start)
     table.remove(tokenlines, start)
@@ -288,7 +287,7 @@ local function findTernary(tChunk, i, part, line, tokenlines)
 end
 
 local function findForeach(tChunk, i, part, line, tokenlines)
-  local start = nil
+  local start
   local step = i - 1
   local params = {}
   while not start do
@@ -301,7 +300,7 @@ local function findForeach(tChunk, i, part, line, tokenlines)
   end
   params = split(table.concat(params), ",")
   step = i + 1
-  local stop = nil
+  local stop
   local vars = {}
   while not stop do
     if tChunk[step] == "do" then
@@ -313,11 +312,11 @@ local function findForeach(tChunk, i, part, line, tokenlines)
   end
   vars = split(table.concat(vars), ",")
   for _, p in ipairs(params) do
-    if not p:find("^"..varPattern .. "$") then
+    if not p:find("^" .. varPattern .. "$") then
       return false
     end
   end
-  local func = table.concat(params, ",") .. " in _G.lpairs("..table.concat(vars, ",")..")"
+  local func = table.concat(params, ",") .. " in _G.lpairs(" .. table.concat(vars, ",") .. ")"
   for i = start, stop do
     table.remove(tChunk, start)
     table.remove(tokenlines, start)
@@ -365,19 +364,19 @@ local function concatWithLines(tbl, lines, skiplines)
   local chunktbl = {}
   local last = 0
   local deadlines = {}
-  for i,j in ipairs(lines) do
+  for i, j in ipairs(lines) do
     if not chunktbl[j] then chunktbl[j] = {} end
     table.insert(chunktbl[j], tbl[i])
-    last = math.max(last,j)
+    last = math.max(last, j)
     if skiplines[i] then
-      for _,v in ipairs(skiplines[i]) do
+      for _, v in ipairs(skiplines[i]) do
         chunktbl[v] = false
         deadlines[v] = j
-        last = math.max(last,v)
+        last = math.max(last, v)
       end
     end
   end
-  for i = 1,last do
+  for i = 1, last do
     if not chunktbl[i] and chunktbl[i] ~= false then
       chunktbl[i] = {}
     end
@@ -389,15 +388,15 @@ local function concatWithLines(tbl, lines, skiplines)
         chunktbl[i] = table.concat(chunktbl[i], " ")
         i = i + 1
       else
-        chunktbl[deadlines[i]] = chunktbl[deadlines[i]].." "..table.concat(chunktbl[i], " ")
+        chunktbl[deadlines[i]] = chunktbl[deadlines[i]] .. " " .. table.concat(chunktbl[i], " ")
         deadlines[i] = nil
         table.remove(chunktbl, i)
         for k = 1, last do
           if deadlines[k] and k > i then
             if deadlines[k] >= i then
-              deadlines[k-1] = deadlines[k] - 1
+              deadlines[k - 1] = deadlines[k] - 1
             else
-              deadlines[k-1] = deadlines[k]
+              deadlines[k - 1] = deadlines[k]
             end
             deadlines[k] = nil
           end
@@ -409,9 +408,9 @@ local function concatWithLines(tbl, lines, skiplines)
       for k = 1, last do
         if deadlines[k] and k > i then
           if deadlines[k] >= i then
-            deadlines[k-1] = deadlines[k] - 1
+            deadlines[k - 1] = deadlines[k] - 1
           else
-            deadlines[k-1] = deadlines[k]
+            deadlines[k - 1] = deadlines[k]
           end
           deadlines[k] = nil
         end

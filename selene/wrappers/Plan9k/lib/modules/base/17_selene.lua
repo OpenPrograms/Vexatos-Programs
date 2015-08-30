@@ -6,9 +6,7 @@ local function initSelene()
     u._PROMPT = _PROMPT
   end
 
-  u._selene.isLoaded = true
   local selene = u.require("selene")
-  u._selene.isLoaded = false
   selene.load(u)
 end
 

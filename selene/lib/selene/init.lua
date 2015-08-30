@@ -6,7 +6,6 @@ Author: Vexatos
 --------
 -- Utils
 --------
-
 local function checkArg(n, have, ...)
   have = type(have)
   local function check(want, ...)
@@ -16,9 +15,10 @@ local function checkArg(n, have, ...)
       return have == want or check(...)
     end
   end
+
   if not check(...) then
     local msg = string.format("bad argument #%d (%s expected, got %s)",
-                              n, table.concat({...}, " or "), have)
+      n, table.concat({ ... }, " or "), have)
     error(msg, 3)
   end
 end
@@ -117,7 +117,7 @@ local function mpairs(obj)
   end
 end
 
-local validMaps = {map = true, list = true, stringlist = true}
+local validMaps = { map = true, list = true, stringlist = true }
 
 local function lpairs(obj)
   if validMaps[tblType(obj)] then
@@ -127,12 +127,12 @@ local function lpairs(obj)
   end
 end
 
-local allMaps = {"map", "list", "stringlist"}
+local allMaps = { "map", "list", "stringlist" }
 
 -- Errors is the value is not a valid type (list or map)
 local function checkType(n, have, ...)
   have = tblType(have)
-  local things = {...}
+  local things = { ... }
   if #things == 0 then things = allMaps end
   local function check(want, ...)
     if not want then
@@ -141,9 +141,10 @@ local function checkType(n, have, ...)
       return have == want or check(...)
     end
   end
+
   if not check(table.unpack(things)) then
     local msg = string.format("[Selene] bad argument #%d (%s expected, got %s)",
-                              n, table.concat({...}, " or "), have)
+      n, table.concat({ ... }, " or "), have)
     error(msg, 3)
   end
 end
@@ -159,7 +160,7 @@ local function checkFunc(n, have, ...)
     error(msg, 2)
   end
 
-  if #{...} == 0 then return end
+  if #{ ... } == 0 then return end
 
   local level = 3
 
@@ -172,9 +173,10 @@ local function checkFunc(n, have, ...)
       return haveParCount == want or check(...)
     end
   end
+
   if not check(...) then
     local msg = string.format("[Selene] bad argument #%d (%s parameter(s) expected, got %s)",
-                              n, table.concat({...}, " or "), haveParCount)
+      n, table.concat({ ... }, " or "), haveParCount)
     error(msg, 3)
   end
 end
@@ -238,12 +240,11 @@ smt.__index = lmt.__index
 --------
 -- Initialization functions
 --------
-
 local function new(t)
   checkArg(1, t, "table", "nil")
   t = t or {}
   local newObj = {}
-  for i,j in pairs(_Table) do
+  for i, j in pairs(_Table) do
     newObj[i] = j
   end
   newObj._tbl = t
@@ -255,13 +256,13 @@ local function newStringList(s)
   checkArg(1, s, "table", "nil")
   s = s or {}
   local newObj = {}
-  for i,j in pairs(_String) do
+  for i, j in pairs(_String) do
     newObj[i] = j
   end
   newObj._tbl = {}
   for i = 1, #s do
     if not s[i] or type(s[i]) ~= "string" or #s[i] > 1 then
-      error("[Selene] could not create list: bad table key: "..i.." is not a character", 2)
+      error("[Selene] could not create list: bad table key: " .. i .. " is not a character", 2)
     end
     newObj._tbl[i] = s[i]
   end
@@ -273,12 +274,12 @@ local function newString(s)
   checkArg(1, s, "string", "nil")
   s = s or ""
   local newObj = {}
-  for i,j in pairs(_String) do
+  for i, j in pairs(_String) do
     newObj[i] = j
   end
   newObj._tbl = {}
   for i = 1, #s do
-    newObj._tbl[i] = s:sub(i,i)
+    newObj._tbl[i] = s:sub(i, i)
   end
   setmetatable(newObj, smt)
   return newObj
@@ -288,9 +289,9 @@ local function newList(t)
   local newObj = new(t)
   for i in pairs(newObj._tbl) do
     if type(i) ~= "number" then
-      error("[Selene] could not create list: bad table key: "..i.." is not a number", 2)
+      error("[Selene] could not create list: bad table key: " .. i .. " is not a number", 2)
     elseif i < 1 then
-      error("[Selene] could not create list: bad table key: "..i.." is below 1", 2)
+      error("[Selene] could not create list: bad table key: " .. i .. " is below 1", 2)
     end
   end
   setmetatable(newObj, lmt)
@@ -314,7 +315,7 @@ local function newFunc(f, parCnt)
   checkArg(1, f, "function")
   checkArg(2, parCnt, "number")
   if parCnt < 0 then
-    error("[Selene] could not create function: bad parameter amount: "..parCnt.." is below 0", 2)
+    error("[Selene] could not create function: bad parameter amount: " .. parCnt .. " is below 0", 2)
   end
   local newF = {}
   local fm = shallowcopy(fmt)
@@ -417,12 +418,12 @@ local function tbl_filter(self, f)
 end
 
 local function wrap_tableDropReturn(self, amt, wrap)
-    local dropped = {}
-    local start, stop = wrap(self, amt)
-    for i = start, stop do
-      insert(dropped, false, self._tbl[i])
-    end
-    return newListOrMap(dropped)
+  local dropped = {}
+  local start, stop = wrap(self, amt)
+  for i = start, stop do
+    insert(dropped, false, self._tbl[i])
+  end
+  return newListOrMap(dropped)
 end
 
 local function wrap_stringDropReturn(self, amt, wrap)
@@ -572,7 +573,7 @@ local function tbl_reduceleft(self, f)
 end
 
 local function tbl_reduceright(self, f)
-   return tbl_reduceleft(tbl_reverse(self), f)
+  return tbl_reduceleft(tbl_reverse(self), f)
 end
 
 -- Returns the first element of the table that matches the function.
@@ -580,7 +581,7 @@ local function tbl_find(self, f)
   checkType(1, self)
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
-  for i,j in mpairs(self) do
+  for i, j in mpairs(self) do
     if f(parCnt(i, j)) then
       return j
     end
@@ -590,7 +591,7 @@ end
 local function rawflatten(self)
   checkArg(1, self, "table")
   local flattened = {}
-  for i,j in ipairs(self) do
+  for i, j in ipairs(self) do
     if tblType(j) == "table" and isList(j) then
       for k, v in ipairs(j) do
         if v ~= nil then
@@ -616,18 +617,18 @@ local function tbl_zip(self, other)
   local tp = tblType(other)
   if tp == "function" then
     local parCnt = checkParCnt(parCount(other, 2))
-    for i,j in mpairs(self) do
-      table.insert(zipped, {j, f(parCnt(i, j))})
+    for i, j in mpairs(self) do
+      table.insert(zipped, { j, f(parCnt(i, j)) })
     end
   elseif tp == "table" then checkList(2, other)
-    assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
-    for i in mpairs(self) do
-      table.insert(zipped, {self._tbl[i], other[i]})
-    end
+  assert(#self == #other, "length mismatch in zip: Argument #1 has " .. tostring(#self) .. ", argument #2 has " .. tostring(#other))
+  for i in mpairs(self) do
+    table.insert(zipped, { self._tbl[i], other[i] })
+  end
   else
-    assert(#self == #other, "length mismatch in zip: Argument #1 has ".. tostring(#self)..", argument #2 has "..tostring(#other))
+    assert(#self == #other, "length mismatch in zip: Argument #1 has " .. tostring(#self) .. ", argument #2 has " .. tostring(#other))
     for i in mpairs(self) do
-      table.insert(zipped, {self._tbl[i], other._tbl[i]})
+      table.insert(zipped, { self._tbl[i], other._tbl[i] })
     end
   end
   return newList(zipped)
@@ -635,7 +636,7 @@ end
 
 local function tbl_contains(self, val)
   checkType(1, self)
-  for i,j in mpairs(self) do
+  for i, j in mpairs(self) do
     if j == val then
       return true
     end
@@ -653,7 +654,7 @@ local function tbl_count(self, f)
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
   local cnt = 0
-  for i,j in mpairs(self) do
+  for i, j in mpairs(self) do
     if f(parCnt(i, j)) then
       cnt = cnt + 1
     end
@@ -665,7 +666,7 @@ local function tbl_exists(self, f)
   checkType(1, self)
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
-  for i,j in mpairs(self) do
+  for i, j in mpairs(self) do
     if f(parCnt(i, j)) then
       return true
     end
@@ -677,7 +678,7 @@ local function tbl_forall(self, f)
   checkType(1, self)
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
-  for i,j in mpairs(self) do
+  for i, j in mpairs(self) do
     if not f(parCnt(i, j)) then
       return false
     end
@@ -705,9 +706,9 @@ local function tbl_zipped(one, two)
   checkList(1, one)
   checkList(2, two)
   local zipped = {}
-  assert(#one == #two, "length mismatch in zip: Argument #1 has ".. tostring(#one)..", argument #2 has "..tostring(#two))
+  assert(#one == #two, "length mismatch in zip: Argument #1 has " .. tostring(#one) .. ", argument #2 has " .. tostring(#two))
   for i in ipairs(one) do
-    table.insert(zipped, {one[i], two[i]})
+    table.insert(zipped, { one[i], two[i] })
   end
   return zipped
 end
@@ -715,7 +716,6 @@ end
 --------
 -- Bulk data operations on stringlists
 --------
-
 local function strl_filter(self, f)
   checkType(1, self, "stringlist")
   checkFunc(2, f)
@@ -729,7 +729,7 @@ local function strl_filter(self, f)
   return newStringList(filtered)
 end
 
-local function strl_dropOrTake(self, amt , wrap)
+local function strl_dropOrTake(self, amt, wrap)
   checkType(1, self, "stringlist")
   self = wrap(self, amt)
   return table.concat(self._tbl)
@@ -771,7 +771,6 @@ end
 --------
 -- Bulk data operations on strings
 --------
-
 local function wrap_emptystring(self)
   return ""
 end
@@ -793,7 +792,7 @@ local function str_map(self, f)
   local mapped = {}
   local parCnt = checkParCnt(parCount(f))
   for i = 1, #self do
-    insert(mapped, false, f(parCnt(i, self:sub(i,i))))
+    insert(mapped, false, f(parCnt(i, self:sub(i, i))))
   end
   return newListOrMap(mapped)
 end
@@ -805,7 +804,7 @@ local function str_filter(self, f)
   local filtered = {}
   local parCnt = checkParCnt(parCount(f))
   for i = 1, #self do
-    local j = self:sub(i,i)
+    local j = self:sub(i, i)
     if f(parCnt(i, j)) then
       insert(filtered, false, parCnt(i, j))
     end
@@ -847,7 +846,7 @@ local function wrap_str_dropOrTakeWhile(self, f, wrap, whenzero, whenall)
   local parCnt = checkParCnt(parCount(f))
   local index = 0
   for i = 1, #self do
-    local s = self:sub(i,i)
+    local s = self:sub(i, i)
     if not f(parCnt(i, s)) then
       break
     end
@@ -865,7 +864,7 @@ local function str_takewhile(self, f)
 end
 
 local function wrap_str_slicepart(self, i)
-  return self:sub(i,i)
+  return self:sub(i, i)
 end
 
 local function str_slice(self, start, stop, step)
@@ -879,7 +878,7 @@ local function str_foldleft(self, start, f)
   checkFunc(3, f)
   local m = start
   for i = 1, #self do
-    m = f(m, self:sub(i,i))
+    m = f(m, self:sub(i, i))
   end
   return m
 end
@@ -895,9 +894,9 @@ local function str_reduceleft(self, f)
   if #self <= 0 then
     error("[Selene] bad argument #1 (got empty string)", 2)
   end
-  local m = self:sub(1,1)
+  local m = self:sub(1, 1)
   for i = 2, #self do
-    m = f(m, self:sub(i,i))
+    m = f(m, self:sub(i, i))
   end
   return m
 end
@@ -914,7 +913,7 @@ local function str_split(self, sep)
   if type(sep) == "number" then
     while #self > 0 do
       table.insert(t, self:sub(1, sep))
-      self = self:sub(sep+1)
+      self = self:sub(sep + 1)
     end
   else
     sep = sep or ""
@@ -922,7 +921,7 @@ local function str_split(self, sep)
     if #sep <= 0 then
       p = "."
     else
-      p = "([^"..sep.."]+)"
+      p = "([^" .. sep .. "]+)"
     end
     for str in self:gmatch(p) do
       table.insert(t, str)
@@ -942,7 +941,7 @@ local function str_count(self, f)
   local parCnt = checkParCnt(parCount(f, 2))
   local cnt = 0
   for i = 1, #self do
-    if f(parCnt(i, self:sub(i,i))) then
+    if f(parCnt(i, self:sub(i, i))) then
       cnt = cnt + 1
     end
   end
@@ -954,7 +953,7 @@ local function str_exists(self, f)
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
   for i = 1, #self do
-    if f(parCnt(i, self:sub(i,i))) then
+    if f(parCnt(i, self:sub(i, i))) then
       return true
     end
   end
@@ -966,7 +965,7 @@ local function str_forall(self, f)
   checkFunc(2, f)
   local parCnt = checkParCnt(parCount(f, 2))
   for i = 1, #self do
-    if not f(parCnt(i, self:sub(i,i))) then
+    if not f(parCnt(i, self:sub(i, i))) then
       return false
     end
   end
@@ -1014,7 +1013,7 @@ end
 -- Adding to global variables
 --------
 
-local VERSION = "Selene 1.0.3"
+local VERSION = "Selene 1.0.4"
 
 local function patchNativeLibs(env)
   env.string.foreach = str_foreach
@@ -1127,7 +1126,7 @@ local function loadSeleneConstructs()
 end
 
 local function loadSelene(env)
-  if not env or type(env) ~= "table" then env = _G end
+  if not env or type(env) ~= "table" then env = _G or _ENV end
   if env._selene and env._selene.isLoaded then return end
   if not env._selene then env._selene = {} end
 
@@ -1176,7 +1175,7 @@ local function loadSelene(env)
 end
 
 local function unloadSelene(env)
-  if not env or type(env) ~= "table" then env = _G end
+  if not env or type(env) ~= "table" then env = _G or _ENV end
   if not env._selene or not env._selene.isLoaded then return end
   if env._selene and env._selene.liveMode and env._selene.oldload then
     env.load = env._selene.oldload
@@ -1228,7 +1227,7 @@ local function unloadSelene(env)
   end
 end
 
-if not _selene or not _selene.isLoaded then
+if _selene and not _selene.isLoaded and _selene.doAutoload then
   loadSelene(_G or _ENV)
 end
 

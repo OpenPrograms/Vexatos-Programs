@@ -3,4 +3,4 @@ _G._selene.liveMode = dofile("/etc/selene.cfg")
 if _G._selene.liveMode then
   _G._PROMPT = "selene> "
 end
-require("selene")
+require("selene").load()
