@@ -5,6 +5,7 @@ This is a Lua library I made for more convenient functional programming. It prov
 ###Table of contents
   - [Syntax](#syntax)
     - [Smart self-calling](#smart-self-calling)
+    - [Arithmetic and Bitwise assignment operators](#arithmetic-and-bitwise-assignment-operators)
     - [Wrapped tables](#wrapped-tables)
       - [What you can do with wrapped tables or strings](#what-you-can-do-with-wrapped-tables-or-strings)
       - [Utility functions for wrapped tables](#utility-functions-for-wrapped-tables)
@@ -32,6 +33,26 @@ Which equates
 ```lua
 local s = "Hello World"
 local r = s:reverse()
+```
+###Arithmetic and Bitwise assignment operators
+Selene adds assignment operators for most arithmetic (and, for Lua 5.3 or higher, bitwise) operators.
+```lua
+a += 4   -- equates 'a = a + 4 '
+a -= 4   -- equates 'a = a - 4 '
+a *= 4   -- equates 'a = a * 4 '
+a /= 4   -- equates 'a = a / 4 '
+a //= 4  -- equates 'a = a // 4'
+a %= 4   -- equates 'a = a % 4 '
+a ^= 4   -- equates 'a = a ^ 4 '
+a &= 4   -- equates 'a = a & 4 '
+a |= 4   -- equates 'a = a | 4 '
+a ~= 4   -- equates 'a = a ~ 4 '
+a >>= 4  -- equates 'a = a >> 4'
+a <<= 4  -- equates 'a = a << 4'
+```
+Having multiple operators in one term still works.
+```lua
+a *= 4 + 7  -- equates 'a = a * 4 + 7' (mind the order of operations)
 ```
 ###Wrapped tables
 You can use `$(t: table or string)` to turn a table or a string into a wrapped table or string to perform bulk data operations on them. If the table is a list (i.e. if every key in the table is a number valid for `ipairs`), it will automatically create a list, otherwise it will create a map.

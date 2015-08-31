@@ -27,11 +27,11 @@ local function tokenize(value, stripcomments)
   for i = 1, unicode.len(value) do
     local char = unicode.sub(value, i, i)
     if escaped then -- escaped character
-    escaped = false
-    token = token .. char
+      escaped = false
+      token = token .. char
     elseif char == "\\" and quoted ~= "'" then -- escape character?
-    escaped = true
-    token = token .. char
+      escaped = true
+      token = token .. char
     elseif char == "\n" and quoted == "--" then
       quoted = false
       if token ~= "" then
@@ -64,11 +64,11 @@ local function tokenize(value, stripcomments)
       quoted = quoted .. s .. char
       token = token .. char
     elseif char == quoted then -- end of quoted string
-    quoted = false
-    token = token .. char
-    table.insert(tokens, token)
-    table.insert(tokenlines, lines)
-    token = ""
+      quoted = false
+      token = token .. char
+      table.insert(tokens, token)
+      table.insert(tokenlines, lines)
+      token = ""
     elseif char == "]" and string.find(token, "%]=*$") and quoted and string.find(quoted, "^%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted then
       quoted = false
       token = token .. char
@@ -90,19 +90,19 @@ local function tokenize(value, stripcomments)
       start = i - #s
       token = token .. char
     elseif (char == "[") and string.find(token, "%[=*$") and not quoted then -- derpy quote
-    local s = string.match(token, "%[=*$")
-    quoted = s .. char
-    start = i - #s
-    token = token .. char
+      local s = string.match(token, "%[=*$")
+      quoted = s .. char
+      start = i - #s
+      token = token .. char
     elseif string.find(char, "%s") and not quoted then -- delimiter
-    if token ~= "" then
-      table.insert(tokens, token)
-      table.insert(tokenlines, lines)
-      token = ""
-    end
-    if char == "\n" then
-      lines = lines + 1
-    end
+      if token ~= "" then
+        table.insert(tokens, token)
+        table.insert(tokenlines, lines)
+        token = ""
+      end
+      if char == "\n" then
+        lines = lines + 1
+      end
     elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
       if token ~= "" then
         table.insert(tokens, token)
@@ -117,8 +117,19 @@ local function tokenize(value, stripcomments)
       table.insert(tokenlines, lines)
       table.insert(tokenlines, lines)
       token = ""
+    elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|~><]$") and not quoted then
+      if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") then
+        table.insert(tokens, token:sub(1, #token - 2))
+        table.insert(tokens, token:sub(#token - 1) .. char)
+      else
+        table.insert(tokens, token:sub(1, #token - 1))
+        table.insert(tokens, token:sub(#token) .. char)
+      end
+      table.insert(tokenlines, lines)
+      table.insert(tokenlines, lines)
+      token = ""
     else -- normal char
-    token = token .. char
+      token = token .. char
     end
   end
   if quoted then
@@ -326,6 +337,16 @@ local function findForeach(tChunk, i, part, line, tokenlines)
   return true
 end
 
+local function findShortArithmetic(tChunk, i)
+  local repl = tChunk[i]:sub(1, #tChunk[i] - 1)
+  if not tChunk[i - 1] then tChunk[i - 1] = "" end
+  if tChunk[i - 1]:find(varPattern) then
+    tChunk[i] = " = " .. tChunk[i - 1] .. " " .. repl
+    return true
+  end
+  return false
+end
+
 --[[local types = {
   ["nil"] = true,
   ["boolean"] = true,
@@ -357,7 +378,19 @@ local keywords = {
   ["?"    ] = findTernary,
   [":"    ] = findSelfCall,
   --["match"] = findMatch,
-  ["$"    ] = findDollars
+  ["$"    ] = findDollars,
+  ["+="   ] = findShortArithmetic,
+  ["-="   ] = findShortArithmetic,
+  ["*="   ] = findShortArithmetic,
+  ["/="   ] = findShortArithmetic,
+  ["//="  ] = findShortArithmetic,
+  ["%="   ] = findShortArithmetic,
+  ["^="   ] = findShortArithmetic,
+  ["&="   ] = findShortArithmetic,
+  ["|="   ] = findShortArithmetic,
+  ["~="   ] = findShortArithmetic,
+  [">>="  ] = findShortArithmetic,
+  ["<<="  ] = findShortArithmetic,
 }
 
 local function concatWithLines(tbl, lines, skiplines)

@@ -6,6 +6,7 @@ Author: Vexatos
 --------
 -- Utils
 --------
+
 local function checkArg(n, have, ...)
   have = type(have)
   local function check(want, ...)
@@ -240,6 +241,7 @@ smt.__index = lmt.__index
 --------
 -- Initialization functions
 --------
+
 local function new(t)
   checkArg(1, t, "table", "nil")
   t = t or {}
@@ -621,10 +623,10 @@ local function tbl_zip(self, other)
       table.insert(zipped, { j, f(parCnt(i, j)) })
     end
   elseif tp == "table" then checkList(2, other)
-  assert(#self == #other, "length mismatch in zip: Argument #1 has " .. tostring(#self) .. ", argument #2 has " .. tostring(#other))
-  for i in mpairs(self) do
-    table.insert(zipped, { self._tbl[i], other[i] })
-  end
+    assert(#self == #other, "length mismatch in zip: Argument #1 has " .. tostring(#self) .. ", argument #2 has " .. tostring(#other))
+    for i in mpairs(self) do
+      table.insert(zipped, { self._tbl[i], other[i] })
+    end
   else
     assert(#self == #other, "length mismatch in zip: Argument #1 has " .. tostring(#self) .. ", argument #2 has " .. tostring(#other))
     for i in mpairs(self) do
@@ -716,6 +718,7 @@ end
 --------
 -- Bulk data operations on stringlists
 --------
+
 local function strl_filter(self, f)
   checkType(1, self, "stringlist")
   checkFunc(2, f)
@@ -771,6 +774,7 @@ end
 --------
 -- Bulk data operations on strings
 --------
+
 local function wrap_emptystring(self)
   return ""
 end
