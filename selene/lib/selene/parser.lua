@@ -117,8 +117,8 @@ local function tokenize(value, stripcomments)
       table.insert(tokenlines, lines)
       table.insert(tokenlines, lines)
       token = ""
-    elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|~><]$") and not quoted then
-      if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") then
+    elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|~><%.]$") and not quoted then
+      if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") or string.find(token, "%.%.$") then
         table.insert(tokens, token:sub(1, #token - 2))
         table.insert(tokens, token:sub(#token - 1) .. char)
       else
@@ -337,7 +337,7 @@ local function findForeach(tChunk, i, part, line, tokenlines)
   return true
 end
 
-local function findShortArithmetic(tChunk, i)
+local function findAssignmentOperator(tChunk, i)
   local repl = tChunk[i]:sub(1, #tChunk[i] - 1)
   if not tChunk[i - 1] then tChunk[i - 1] = "" end
   if tChunk[i - 1]:find(varPattern) then
@@ -379,18 +379,19 @@ local keywords = {
   [":"    ] = findSelfCall,
   --["match"] = findMatch,
   ["$"    ] = findDollars,
-  ["+="   ] = findShortArithmetic,
-  ["-="   ] = findShortArithmetic,
-  ["*="   ] = findShortArithmetic,
-  ["/="   ] = findShortArithmetic,
-  ["//="  ] = findShortArithmetic,
-  ["%="   ] = findShortArithmetic,
-  ["^="   ] = findShortArithmetic,
-  ["&="   ] = findShortArithmetic,
-  ["|="   ] = findShortArithmetic,
-  ["~="   ] = findShortArithmetic,
-  [">>="  ] = findShortArithmetic,
-  ["<<="  ] = findShortArithmetic,
+  ["+="   ] = findAssignmentOperator,
+  ["-="   ] = findAssignmentOperator,
+  ["*="   ] = findAssignmentOperator,
+  ["/="   ] = findAssignmentOperator,
+  ["//="  ] = findAssignmentOperator,
+  ["%="   ] = findAssignmentOperator,
+  ["^="   ] = findAssignmentOperator,
+  ["&="   ] = findAssignmentOperator,
+  ["|="   ] = findAssignmentOperator,
+  ["~="   ] = findAssignmentOperator,
+  [">>="  ] = findAssignmentOperator,
+  ["<<="  ] = findAssignmentOperator,
+  ["..="  ] = findAssignmentOperator,
 }
 
 local function concatWithLines(tbl, lines, skiplines)

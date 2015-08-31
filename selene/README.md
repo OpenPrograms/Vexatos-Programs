@@ -5,7 +5,7 @@ This is a Lua library I made for more convenient functional programming. It prov
 ###Table of contents
   - [Syntax](#syntax)
     - [Smart self-calling](#smart-self-calling)
-    - [Arithmetic and Bitwise assignment operators](#arithmetic-and-bitwise-assignment-operators)
+    - [Assignment operators](#assignment-operators)
     - [Wrapped tables](#wrapped-tables)
       - [What you can do with wrapped tables or strings](#what-you-can-do-with-wrapped-tables-or-strings)
       - [Utility functions for wrapped tables](#utility-functions-for-wrapped-tables)
@@ -34,8 +34,8 @@ Which equates
 local s = "Hello World"
 local r = s:reverse()
 ```
-###Arithmetic and Bitwise assignment operators
-Selene adds assignment operators for most arithmetic (and, for Lua 5.3 or higher, bitwise) operators.
+###Assignment operators
+Selene adds assignment operators for most operators in Lua.
 ```lua
 a += 4   -- equates 'a = a + 4 '
 a -= 4   -- equates 'a = a - 4 '
@@ -49,6 +49,7 @@ a |= 4   -- equates 'a = a | 4 '
 a ~= 4   -- equates 'a = a ~ 4 '
 a >>= 4  -- equates 'a = a >> 4'
 a <<= 4  -- equates 'a = a << 4'
+a .= 4   -- equates 'a = a .. 4'
 ```
 Having multiple operators in one term still works.
 ```lua
