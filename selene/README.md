@@ -49,7 +49,7 @@ a |= 4   -- equates 'a = a | 4 '
 a ~= 4   -- equates 'a = a ~ 4 '
 a >>= 4  -- equates 'a = a >> 4'
 a <<= 4  -- equates 'a = a << 4'
-a .= 4   -- equates 'a = a .. 4'
+a ..= 4   -- equates 'a = a .. 4'
 ```
 Having multiple operators in one term still works.
 ```lua
