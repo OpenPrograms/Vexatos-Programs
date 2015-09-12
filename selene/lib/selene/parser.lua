@@ -117,7 +117,7 @@ local function tokenize(value, stripcomments)
       table.insert(tokenlines, lines)
       table.insert(tokenlines, lines)
       token = ""
-    elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|~><%.]$") and not quoted then
+    elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|><%.]$") and not quoted then
       if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") or string.find(token, "%.%.$") then
         table.insert(tokens, token:sub(1, #token - 2))
         table.insert(tokens, token:sub(#token - 1) .. char)
@@ -388,7 +388,7 @@ local keywords = {
   ["^="   ] = findAssignmentOperator,
   ["&="   ] = findAssignmentOperator,
   ["|="   ] = findAssignmentOperator,
-  ["~="   ] = findAssignmentOperator,
+  --["~="   ] = findAssignmentOperator,
   [">>="  ] = findAssignmentOperator,
   ["<<="  ] = findAssignmentOperator,
   ["..="  ] = findAssignmentOperator,
