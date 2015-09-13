@@ -26,6 +26,16 @@ local function tokenize(value, stripcomments)
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
     local char = unicode.sub(value, i, i)
+    if char ~= "$" and string.find(token, "%$$") and not quoted then
+      local tok = token:sub(1, #token - 1)
+      if tok ~= "" then
+        table.insert(tokens, tok)
+        table.insert(tokenlines, lines)
+      end
+      table.insert(tokens, token:sub(#token))
+      table.insert(tokenlines, lines)
+      token = ""
+    end
     if escaped then -- escaped character
       escaped = false
       token = token .. char
@@ -103,7 +113,24 @@ local function tokenize(value, stripcomments)
       if char == "\n" then
         lines = lines + 1
       end
-    elseif string.find(char, "[%(%)%$:%?,]") and not quoted then
+    elseif char == "$" and not quoted then
+      if string.find(token, "%$$") then
+        local tok = token:sub(1, #token - 1)
+        if tok ~= "" then
+          table.insert(tokens, tok)
+          table.insert(tokenlines, lines)
+        end
+        table.insert(tokens, token:sub(#token) .. char)
+        table.insert(tokenlines, lines)
+        token = ""
+      else
+        if token ~= "" then
+          table.insert(tokens, token)
+          table.insert(tokenlines, lines)
+        end
+        token = char
+      end
+    elseif string.find(char, "[%(%):%?,]") and not quoted then
       if token ~= "" then
         table.insert(tokens, token)
         table.insert(tokenlines, lines)
@@ -112,20 +139,30 @@ local function tokenize(value, stripcomments)
       table.insert(tokens, char)
       table.insert(tokenlines, lines)
     elseif string.find(char, "[%->]") and string.find(token, "[%-=<]$") and not quoted then
-      table.insert(tokens, token:sub(1, #token - 1))
+      local tok = token:sub(1, #token - 1)
+      if tok ~= "" then
+        table.insert(tokens, tok)
+        table.insert(tokenlines, lines)
+      end
       table.insert(tokens, token:sub(#token) .. char)
-      table.insert(tokenlines, lines)
       table.insert(tokenlines, lines)
       token = ""
     elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|><%.]$") and not quoted then
       if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") or string.find(token, "%.%.$") then
-        table.insert(tokens, token:sub(1, #token - 2))
+        local tok = token:sub(1, #token - 2)
+        if tok ~= "" then
+          table.insert(tokens, tok)
+          table.insert(tokenlines, lines)
+        end
         table.insert(tokens, token:sub(#token - 1) .. char)
       else
-        table.insert(tokens, token:sub(1, #token - 1))
+        local tok = token:sub(1, #token - 1)
+        if tok ~= "" then
+          table.insert(tokens, tok)
+          table.insert(tokenlines, lines)
+        end
         table.insert(tokens, token:sub(#token) .. char)
       end
-      table.insert(tokenlines, lines)
       table.insert(tokenlines, lines)
       token = ""
     else -- normal char
