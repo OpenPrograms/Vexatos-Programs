@@ -260,6 +260,10 @@ local function findDollars(tChunk, i, part, line, tokenlines)
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
+  elseif curr:find("^%$") and tChunk[i - 1]:find("^"..varPattern.."$") then
+    tChunk[i] = " = _G._selene._new(" .. tChunk[i-1] .. ")"
+    table.remove(tChunk, i + 1)
+    table.remove(tokenlines, i + 1)
   else
     perror("invalid $ at index " .. i .. " (line " .. line .. ")")
   end

@@ -66,6 +66,9 @@ local p = {a="one", b="two"}
 p = $(p) -- Will create a map
 local s = "Fish"
 s = $(s) -- Will create a wrapped string, you can iterate through each character just like you can using a list.
+
+local r = {"three", "four"}
+r$$      -- equates 'r = $(r)'
 ```
 If you want to enforce a certain type of wrapped table, you can use `$l()` to create a list and `$s()` to create a wrapped string. If the wrapped table of the specific type cannot be created for some reason, the function will error.
 
