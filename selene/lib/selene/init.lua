@@ -202,14 +202,17 @@ local mt = {
   __tostring = function(tbl)
     return tostring(tbl._tbl)
   end,
+  __index = function(tbl, key)
+    return tbl._tbl[key]
+  end,
+  __newindex = function(tbl, key, val)
+    error("[Selene] attempt to insert value into " .. tblType(tbl), 2)
+  end,
   ltype = "map"
 }
 
 local lmt = shallowcopy(mt)
 lmt.ltype = "list"
-lmt.__index = function(tbl, key)
-  return tbl._tbl[key]
-end
 
 local fmt = {
   __call = function(fnc, ...)
@@ -224,6 +227,13 @@ local fmt = {
   __ipairs = function(fnc)
     return ipairs(fnc._fnc)
   end,
+  __tostring = function(fnc)
+    return tostring(fnc._fnc)
+  end,
+  __index = function(fnc, key)
+    return fnc._fnc[key]
+  end,
+  __newindex = mt.__newindex,
   ltype = "function"
 }
 
@@ -236,7 +246,6 @@ smt.__call = function(str)
   return table.concat(str._tbl)
 end
 smt.__tostring = smt.__call
-smt.__index = lmt.__index
 
 --------
 -- Initialization functions
@@ -325,6 +334,73 @@ local function newFunc(f, parCnt)
   fm.parCount = parCnt
   setmetatable(newF, fm)
   return newF
+end
+
+local function newWrappedTable(t)
+  if type(t) == "string" then
+    return newString(t)
+  else
+    return newListOrMap(t)
+  end
+end
+
+--------
+-- Final metatable initialization
+--------
+
+mt.__concat = function(first, second)
+  local fType = tblType(first)
+  if fType == "map" and type(second) == "table" then
+    local merged = shallowcopy(first._tbl)
+    for k,v in lpairs(second) do
+      merged[k] = v
+    end
+    return newListOrMap(merged)
+  else
+    local sType = tblType(second)
+    error(string.format("[Selene] attempt to concatenate %s and %s (cannot insert %s into %s)",
+      fType, sType, sType, fType), 2)
+  end
+end
+
+local function concatOnCondition(first, second, cond)
+  local fType = tblType(first)
+  if (fType == "list" or fType == "stringlist") and cond(second) then
+    local merged = shallowcopy(first._tbl)
+    for _,v in ipairs(second) do
+      table.insert(merged, v)
+    end
+    return newListOrMap(merged)
+  else
+    local sType = tblType(second)
+    error(string.format("[Selene] attempt to concatenate %s and %s (cannot insert %s into %s)",
+      fType, sType, sType, fType), 2)
+  end
+end
+
+lmt.__concat = function(first, second)
+  return concatOnCondition(first, second, isList)
+end
+
+local function isStringList(val)
+  return tblType(val) == "stringlist"
+end
+
+smt.__concat = function(first, second)
+  return concatOnCondition(first, second, isStringList)
+end
+
+lmt.__add = function(first, second)
+  local fType = tblType(first)
+  if fType == "list" then
+    local merged = shallowcopy(first._tbl)
+    table.insert(merged, second)
+    return newListOrMap(merged)
+  else
+    local sType = tblType(second)
+    error(string.format("[Selene] attempt to add %s and %s (cannot insert %s into %s)",
+      fType, sType, sType, fType), 2)
+  end
 end
 
 --------
@@ -1092,10 +1168,7 @@ local function loadSeleneConstructs()
 
   _Table.shallowcopy = function(self)
     checkType(1, self)
-    local newObj = shallowcopy(self)
-    setmetatable(newObj, getmetatable(self))
-    newObj._tbl = shallowcopy(self._tbl)
-    return newObj
+    return newListOrMap(shallowcopy(self._tbl))
   end
 
   _String.foreach = tbl_foreach
@@ -1134,13 +1207,7 @@ local function loadSelene(env)
   if env._selene and env._selene.isLoaded then return end
   if not env._selene then env._selene = {} end
 
-  env._selene._new = function(t)
-    if type(t) == "string" then
-      return newString(t)
-    else
-      return newListOrMap(t)
-    end
-  end
+  env._selene._new = newWrappedTable
   if not env.checkArg then env.checkArg = checkArg end
   env._selene._newString = newString
   env._selene._newList = newList

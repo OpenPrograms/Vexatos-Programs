@@ -8,6 +8,9 @@ This is a Lua library I made for more convenient functional programming. It prov
     - [Assignment operators](#assignment-operators)
     - [Wrapped tables](#wrapped-tables)
       - [What you can do with wrapped tables or strings](#what-you-can-do-with-wrapped-tables-or-strings)
+        - [Merging Wrapped Tables](#merging-wrapped-tables)
+        - [Inserting values into lists](#inserting-values-into-lists)
+        - [String iterators](#string-iterators)
       - [Utility functions for wrapped tables](#utility-functions-for-wrapped-tables)
     - [Lambdas](#lambdas)
       - [Utility functions for wrapped and normal functions](#utility-functions-for-wrapped-and-normal-functions)
@@ -75,7 +78,31 @@ s = tostring(s) -- This is a way of getting back strings from wrapped strings.
 ```
 A note about wrapped strings: If you call `pairs` or `ipairs` with a wrapped string as a parameter, it will iterate through every character in the string.
 ####What you can do with wrapped tables or strings
-See [the functions documentation](#functions) for methods may call on wrapped tables or strings.
+See [the functions documentation](#functions) for methods one may call on wrapped tables or strings.
+#####Merging Wrapped Tables
+You can merge maps, lists and stringlists by concatenating (`..`) them:
+```lua
+local t1 = {a = "one", c = 4, test = "three"}
+local t2 = {test = "four", b = false, d = "fish"}
+local t3 = $(t1)..$(t2) -- t3 is now {a="one", b=false, c=4, d="fish", test="four")}
+```
+The values of the second map will always overwrite keys of the first map in case both contain values assigned to the same keys.
+
+If you concatenate lists, the values of the second one will be appended to those of the first one.
+```lua
+local t1 = {1, "two", true}
+local t2 = {4, "five", 6}
+local t3 = ($(t1) .. $(t2))() -- t3 is now {1, "two", true, 4, "five", 6}
+```
+
+You can merge any table with a map. Anything `isList` (see below) returns `true` on can be inserted into lists and stringlists can have stringlists inserted into them.
+#####Inserting values into lists
+You can insert any value into a list using the `+` operator:
+```lua
+local t1 = {1, "two", true}
+local t2 = ($(t1) + 4)() -- t2 is now {1, "two", true, 4}
+```
+#####String Iterators
 There are now three different ways to iterate through the characters of a string:
 ```lua
 for index, char in ipairs($(s)) do
