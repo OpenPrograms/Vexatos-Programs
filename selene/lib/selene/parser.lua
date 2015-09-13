@@ -297,10 +297,6 @@ local function findDollars(tChunk, i, part, line, tokenlines)
   elseif tChunk[i - 1]:find("[:%.]$") then
     tChunk[i - 1] = tChunk[i - 1]:sub(1, #(tChunk[i - 1]) - 1)
     tChunk[i] = "()"
-  elseif curr:find("^%$") and tChunk[i - 1]:find("^"..varPattern.."$") then
-    tChunk[i] = " = _G._selene._new(" .. tChunk[i-1] .. ")"
-    table.remove(tChunk, i + 1)
-    table.remove(tokenlines, i + 1)
   else
     perror("invalid $ at index " .. i .. " (line " .. line .. ")")
   end
@@ -388,6 +384,16 @@ local function findAssignmentOperator(tChunk, i)
   return false
 end
 
+local function findDollarAssignment(tChunk, i, part, line, tokenlines)
+  if not tChunk[i - 1] then tChunk[i - 1] = "" end
+  if tChunk[i - 1]:find("^"..varPattern.."$") then
+    tChunk[i] = " = _G._selene._new(" .. tChunk[i-1] .. ")"
+    return true
+  else
+      perror("invalid $$ at index " .. i .. " (line " .. line .. ")")
+  end
+end
+
 --[[local types = {
   ["nil"] = true,
   ["boolean"] = true,
@@ -420,6 +426,7 @@ local keywords = {
   [":"    ] = findSelfCall,
   --["match"] = findMatch,
   ["$"    ] = findDollars,
+  ["$$"   ] = findDollarAssignment,
   ["+="   ] = findAssignmentOperator,
   ["-="   ] = findAssignmentOperator,
   ["*="   ] = findAssignmentOperator,
