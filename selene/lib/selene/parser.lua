@@ -10,23 +10,31 @@ end
 
 local selenep = {}
 
+local timeout
+
 -------------------------------------------------------------------------------
 -- Taken from text.lua and improved
 
 local function trim(value) -- from http://lua-users.org/wiki/StringTrim
-local from = string.match(value, "^%s*()")
-return from > #value and "" or string.match(value, ".*%S", from)
+  local from = string.match(value, "^%s*()")
+  return from > #value and "" or string.match(value, ".*%S", from)
 end
 
-local function tokenize(value, stripcomments)
+local function tokenize(value, stripcomments, utime)
   if not type(stripcomments) == "boolean" then stripcomments = true end
   if not value:find("\n$") then value = value .. "\n" end
   local tokenlines, lines, skiplines = {}, 1, {}
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
   for i = 1, unicode.len(value) do
+    if timeout and utime then
+      if timeout.time() >= utime + timeout.wait() then
+        timeout.yield()
+        utime = timeout.time()
+      end
+    end
     local char = unicode.sub(value, i, i)
-    if char ~= "$" and string.find(token, "%$$") and not quoted then
+    if string.find(token, "%$$") and not quoted and char ~= "$" then
       local tok = token:sub(1, #token - 1)
       if tok ~= "" then
         table.insert(tokens, tok)
@@ -188,7 +196,7 @@ local function tokenize(value, stripcomments)
       i = i + 1
     end
   end
-  return tokens, tokenlines, skiplines
+  return tokens, tokenlines, skiplines, utime
 end
 
 -------------------------------------------------------------------------------
@@ -504,7 +512,11 @@ end
 
 local function parse(chunk, stripcomments)
   if not type(stripcomments) == "boolean" then stripcomments = true end
-  local tChunk, tokenlines, skiplines = tokenize(chunk, stripcomments)
+  local utime
+  if timeout then
+    utime = timeout.time()
+  end
+  local tChunk, tokenlines, skiplines, utime = tokenize(chunk, stripcomments, utime)
   chunk = nil
   if not tChunk then
     error(tokenlines)
@@ -528,6 +540,19 @@ end
 
 function selenep.parse(chunk, stripcomments)
   return parse(chunk, stripcomments)
+end
+
+--[[
+  Allows setting a handler in case the sandbox must yield/pause every so often. All three parameters must be callable.
+  'func' is the function that will be called to prevent a timeout.
+  'time' needs to return the interval in which the function is called.
+  'timefunc' must be a function that returns the current time. Its value will be compared to the last call's value to determine whether 'func' needs to be called.
+]]
+function selenep.setTimeoutHandler(func, time, timefunc)
+  timeout = {}
+  timeout.yield = func
+  timeout.wait = time
+  timeout.time = timefunc
 end
 
 return selenep

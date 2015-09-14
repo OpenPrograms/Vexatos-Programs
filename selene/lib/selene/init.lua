@@ -1303,6 +1303,7 @@ if _selene and not _selene.isLoaded and _selene.doAutoload then
 end
 
 local selene = {}
+selene.parser = parser
 selene.parse = parse
 selene.load = loadSelene
 selene.unload = unloadSelene

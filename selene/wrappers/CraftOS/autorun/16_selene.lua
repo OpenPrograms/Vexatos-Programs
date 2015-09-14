@@ -36,7 +36,18 @@ local function readConfig()
   if success then
     _G._selene.liveMode = mode
     if enable then
-      require("selene").load()
+      local selene = require("selene")
+      selene.load()
+
+      selene.parser.setTimeoutHandler(
+        function()
+          sleep(0)
+        end,
+        function()
+          return 3
+        end,
+        os.clock
+      )
     end
   else
     _G._selene.liveMode = false

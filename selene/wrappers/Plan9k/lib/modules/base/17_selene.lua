@@ -8,6 +8,16 @@ local function initSelene()
 
   local selene = u.require("selene")
   selene.load(u)
+
+  selene.parser.setTimeoutHandler(
+    function()
+      u.os.sleep(0)
+    end,
+    function()
+      return 3
+    end,
+    computer.uptime
+  )
 end
 
 function start()
