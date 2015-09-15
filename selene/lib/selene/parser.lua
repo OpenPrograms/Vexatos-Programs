@@ -60,7 +60,7 @@ local function tokenize(value, stripcomments, utime)
         token = ""
       end
       lines = lines + 1
-    elseif char == "]" and string.find(token, "%]=*$") and string.find(quoted, "^--%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted - 2 then
+    elseif char == "]" and quoted and string.find(token, "%]=*$") and string.find(quoted, "^--%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted - 2 then
       quoted = false
       token = token .. char
       if stripcomments then
@@ -102,12 +102,12 @@ local function tokenize(value, stripcomments, utime)
       quoted = char
       start = i
       token = token .. char
-    elseif char == "-" and string.find(token, "%-$") and not quoted then
+    elseif char == "-" and not quoted and string.find(token, "%-$") then
       local s = string.match(token, "%-$")
       quoted = s .. char
       start = i - #s
       token = token .. char
-    elseif (char == "[") and string.find(token, "%[=*$") and not quoted then -- derpy quote
+    elseif (char == "[") and not quoted and string.find(token, "%[=*$") then -- derpy quote
       local s = string.match(token, "%[=*$")
       quoted = s .. char
       start = i - #s
@@ -146,7 +146,7 @@ local function tokenize(value, stripcomments, utime)
       end
       table.insert(tokens, char)
       table.insert(tokenlines, lines)
-    elseif string.find(char, "[%->]") and string.find(token, "[%-=<]$") and not quoted then
+    elseif string.find(char, "[%->]") and not quoted and string.find(token, "[%-=<]$") then
       local tok = token:sub(1, #token - 1)
       if tok ~= "" then
         table.insert(tokens, tok)
@@ -155,7 +155,7 @@ local function tokenize(value, stripcomments, utime)
       table.insert(tokens, token:sub(#token) .. char)
       table.insert(tokenlines, lines)
       token = ""
-    elseif string.find(char, "=", 1, true) and string.find(token, "[%+%-%*/%%^&|><%.]$") and not quoted then
+    elseif string.find(char, "=", 1, true) and not quoted and string.find(token, "[%+%-%*/%%^&|><%.]$") then
       if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") or string.find(token, "%.%.$") then
         local tok = token:sub(1, #token - 2)
         if tok ~= "" then
