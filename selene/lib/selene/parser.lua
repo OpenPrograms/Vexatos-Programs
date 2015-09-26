@@ -20,6 +20,11 @@ local function trim(value) -- from http://lua-users.org/wiki/StringTrim
   return from > #value and "" or string.match(value, ".*%S", from)
 end
 
+local escapable = {
+  ["'"]  = true,
+  ['"']  = true
+}
+
 local function tokenize(value, stripcomments, utime)
   if not type(stripcomments) == "boolean" then stripcomments = true end
   if not value:find("\n$") then value = value .. "\n" end
@@ -34,7 +39,8 @@ local function tokenize(value, stripcomments, utime)
       end
     end
     local char = unicode.sub(value, i, i)
-    if string.find(token, "%$$") and not quoted and char ~= "$" then
+
+    if not quoted and string.find(token, "%$$") and char ~= "$" then
       local tok = token:sub(1, #token - 1)
       if tok ~= "" then
         table.insert(tokens, tok)
@@ -44,10 +50,14 @@ local function tokenize(value, stripcomments, utime)
       table.insert(tokenlines, lines)
       token = ""
     end
+    if escaped and not escapable[quoted] then
+      escaped = false
+    end
+
     if escaped then -- escaped character
       escaped = false
       token = token .. char
-    elseif char == "\\" and quoted ~= "'" then -- escape character?
+    elseif char == "\\" and quoted and escapable[quoted] then -- escape character?
       escaped = true
       token = token .. char
     elseif char == "\n" and quoted == "--" then
@@ -60,7 +70,7 @@ local function tokenize(value, stripcomments, utime)
         token = ""
       end
       lines = lines + 1
-    elseif char == "]" and quoted and string.find(token, "%]=*$") and string.find(quoted, "^--%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted - 2 then
+    elseif char == "]" and quoted and string.find(token, "%]=*$") and string.find(quoted, "^%-%-%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted - 2 then
       quoted = false
       token = token .. char
       if stripcomments then
@@ -81,13 +91,13 @@ local function tokenize(value, stripcomments, utime)
       local s = string.match(token, "%[=*$")
       quoted = quoted .. s .. char
       token = token .. char
-    elseif char == quoted then -- end of quoted string
+    elseif char == quoted and escapable[char] then -- end of quoted string
       quoted = false
       token = token .. char
       table.insert(tokens, token)
       table.insert(tokenlines, lines)
       token = ""
-    elseif char == "]" and string.find(token, "%]=*$") and quoted and string.find(quoted, "^%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted then
+    elseif char == "]" and quoted and string.find(token, "%]=*$") and string.find(quoted, "^%[=*%[") and #(string.match(token, "%]=*$") .. char) == #quoted then
       quoted = false
       token = token .. char
       table.insert(tokens, token)
@@ -98,7 +108,7 @@ local function tokenize(value, stripcomments, utime)
         table.insert(skiplines[#tokenlines], lines)
       end
       token = ""
-    elseif (char == "'" or char == '"') and not quoted then
+    elseif not quoted and escapable[char] then
       quoted = char
       start = i
       token = token .. char
@@ -107,12 +117,12 @@ local function tokenize(value, stripcomments, utime)
       quoted = s .. char
       start = i - #s
       token = token .. char
-    elseif (char == "[") and not quoted and string.find(token, "%[=*$") then -- derpy quote
+    elseif char == "[" and not quoted and string.find(token, "%[=*$") then -- derpy quote
       local s = string.match(token, "%[=*$")
       quoted = s .. char
       start = i - #s
       token = token .. char
-    elseif string.find(char, "%s") and not quoted then -- delimiter
+    elseif not quoted and string.find(char, "%s") then -- delimiter
       if token ~= "" then
         table.insert(tokens, token)
         table.insert(tokenlines, lines)
@@ -138,7 +148,7 @@ local function tokenize(value, stripcomments, utime)
         end
         token = char
       end
-    elseif string.find(char, "[%(%):%?,]") and not quoted then
+    elseif not quoted and string.find(char, "[%(%):%?,]") then
       if token ~= "" then
         table.insert(tokens, token)
         table.insert(tokenlines, lines)
@@ -146,7 +156,7 @@ local function tokenize(value, stripcomments, utime)
       end
       table.insert(tokens, char)
       table.insert(tokenlines, lines)
-    elseif string.find(char, "[%->]") and not quoted and string.find(token, "[%-=<]$") then
+    elseif not quoted and string.find(char, "[%->]") and string.find(token, "[%-=<]$") then
       local tok = token:sub(1, #token - 1)
       if tok ~= "" then
         table.insert(tokens, tok)
@@ -155,7 +165,7 @@ local function tokenize(value, stripcomments, utime)
       table.insert(tokens, token:sub(#token) .. char)
       table.insert(tokenlines, lines)
       token = ""
-    elseif string.find(char, "=", 1, true) and not quoted and string.find(token, "[%+%-%*/%%^&|><%.]$") then
+    elseif char == "=" and not quoted and string.find(token, "[%+%-%*/%%^&|><%.]$") then
       if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") or string.find(token, "%.%.$") then
         local tok = token:sub(1, #token - 2)
         if tok ~= "" then
@@ -398,7 +408,7 @@ local function findDollarAssignment(tChunk, i, part, line, tokenlines)
     tChunk[i] = " = _G._selene._new(" .. tChunk[i-1] .. ")"
     return true
   else
-      perror("invalid $$ at index " .. i .. " (line " .. line .. ")")
+    perror("invalid $$ at index " .. i .. " (line " .. line .. ")")
   end
 end
 
@@ -481,8 +491,8 @@ local function concatWithLines(tbl, lines, skiplines)
         chunktbl[deadlines[i]] = chunktbl[deadlines[i]] .. " " .. table.concat(chunktbl[i], " ")
         deadlines[i] = nil
         table.remove(chunktbl, i)
-        for k = 1, last do
-          if deadlines[k] and k > i then
+        for k = i + 1, last do
+          if deadlines[k] then
             if deadlines[k] >= i then
               deadlines[k - 1] = deadlines[k] - 1
             else
@@ -495,8 +505,8 @@ local function concatWithLines(tbl, lines, skiplines)
     else
       deadlines[i] = nil
       table.remove(chunktbl, i)
-      for k = 1, last do
-        if deadlines[k] and k > i then
+      for k = i + 1, last do
+        if deadlines[k] then
           if deadlines[k] >= i then
             deadlines[k - 1] = deadlines[k] - 1
           else
