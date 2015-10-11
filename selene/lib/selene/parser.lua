@@ -31,6 +31,7 @@ local function tokenize(value, stripcomments, utime)
   local tokenlines, lines, skiplines = {}, 1, {}
   local tokens, token = {}, ""
   local escaped, quoted, start = false, false, -1
+  local waiting
   for i = 1, unicode.len(value) do
     if timeout and utime then
       if timeout.time() >= utime + timeout.wait() then
@@ -40,16 +41,6 @@ local function tokenize(value, stripcomments, utime)
     end
     local char = unicode.sub(value, i, i)
 
-    if not quoted and string.find(token, "%$$") and char ~= "$" then
-      local tok = token:sub(1, #token - 1)
-      if tok ~= "" then
-        table.insert(tokens, tok)
-        table.insert(tokenlines, lines)
-      end
-      table.insert(tokens, token:sub(#token))
-      table.insert(tokenlines, lines)
-      token = ""
-    end
     if escaped and not escapable[quoted] then
       escaped = false
     end
@@ -131,22 +122,19 @@ local function tokenize(value, stripcomments, utime)
       if char == "\n" then
         lines = lines + 1
       end
-    elseif char == "$" and not quoted then
-      if string.find(token, "%$$") then
-        local tok = token:sub(1, #token - 1)
-        if tok ~= "" then
-          table.insert(tokens, tok)
-          table.insert(tokenlines, lines)
-        end
-        table.insert(tokens, token:sub(#token) .. char)
-        table.insert(tokenlines, lines)
-        token = ""
+    elseif not quoted and string.find(char, "^[%$:]$") then
+      if waiting == false and token == "" and tokens[#tokens] and string.find(tokens[#tokens], "^%"..char.."$") then
+        tokens[#tokens] = tokens[#tokens] .. char
+        waiting = nil
       else
         if token ~= "" then
           table.insert(tokens, token)
           table.insert(tokenlines, lines)
+          token = ""
         end
-        token = char
+        table.insert(tokens, char)
+        table.insert(tokenlines, lines)
+        waiting  = true
       end
     elseif not quoted and string.find(char, "[%(%):%?,]") then
       if token ~= "" then
@@ -185,6 +173,11 @@ local function tokenize(value, stripcomments, utime)
       token = ""
     else -- normal char
       token = token .. char
+    end
+    if waiting then
+      waiting = false
+    else
+      waiting = nil
     end
   end
   if quoted then
@@ -394,7 +387,6 @@ end
 
 local function findAssignmentOperator(tChunk, i)
   local repl = tChunk[i]:sub(1, #tChunk[i] - 1)
-  if not tChunk[i - 1] then tChunk[i - 1] = "" end
   if tChunk[i - 1]:find(varPattern) then
     tChunk[i] = " = " .. tChunk[i - 1] .. " " .. repl
     return true
@@ -402,8 +394,16 @@ local function findAssignmentOperator(tChunk, i)
   return false
 end
 
+local function findSelfCallAssignment(tChunk, i, part, line, tokenlines)
+  if tChunk[i - 1]:find(varPattern) then
+    tChunk[i] = " = " .. tChunk[i - 1] .. ":"
+    return true
+  else
+    perror("invalid :: at index " .. i .. " (line " .. line .. ")")
+  end
+end
+
 local function findDollarAssignment(tChunk, i, part, line, tokenlines)
-  if not tChunk[i - 1] then tChunk[i - 1] = "" end
   if tChunk[i - 1]:find("^"..varPattern.."$") then
     tChunk[i] = " = _G._selene._new(" .. tChunk[i-1] .. ")"
     return true
@@ -442,6 +442,7 @@ local keywords = {
   ["<-"   ] = findForeach,
   ["?"    ] = findTernary,
   [":"    ] = findSelfCall,
+  ["::"   ] = findSelfCallAssignment,
   --["match"] = findMatch,
   ["$"    ] = findDollars,
   ["$$"   ] = findDollarAssignment,
