@@ -122,7 +122,9 @@ local function tokenize(value, stripcomments, utime)
       if char == "\n" then
         lines = lines + 1
       end
-    elseif not quoted and string.find(char, "^[%$:]$") then
+    elseif char == "=" and not quoted and token == "" and tokens[#tokens] and (string.find(tokens[#tokens], "^[%+%-%*/%%^&|><%.:]$") or string.find(tokens[#tokens], "^([/<>%.])%1$")) then
+      tokens[#tokens] = tokens[#tokens] .. char
+    elseif not quoted and string.find(char, "^[/<>%.%$]$") then
       if waiting == false and token == "" and tokens[#tokens] and string.find(tokens[#tokens], "^%"..char.."$") then
         tokens[#tokens] = tokens[#tokens] .. char
         waiting = nil
@@ -136,7 +138,7 @@ local function tokenize(value, stripcomments, utime)
         table.insert(tokenlines, lines)
         waiting  = true
       end
-    elseif not quoted and string.find(char, "[%(%):%?,]") then
+    elseif not quoted and string.find(char, "^[%(%):%?,%+%-%*%%^&|=]$") then
       if token ~= "" then
         table.insert(tokens, token)
         table.insert(tokenlines, lines)
@@ -144,33 +146,8 @@ local function tokenize(value, stripcomments, utime)
       end
       table.insert(tokens, char)
       table.insert(tokenlines, lines)
-    elseif not quoted and string.find(char, "[%->]") and string.find(token, "[%-=<]$") then
-      local tok = token:sub(1, #token - 1)
-      if tok ~= "" then
-        table.insert(tokens, tok)
-        table.insert(tokenlines, lines)
-      end
-      table.insert(tokens, token:sub(#token) .. char)
-      table.insert(tokenlines, lines)
-      token = ""
-    elseif char == "=" and not quoted and string.find(token, "[%+%-%*/%%^&|><%.]$") then
-      if string.find(token, "//$") or string.find(token, "<<$") or string.find(token, ">>$") or string.find(token, "%.%.$") then
-        local tok = token:sub(1, #token - 2)
-        if tok ~= "" then
-          table.insert(tokens, tok)
-          table.insert(tokenlines, lines)
-        end
-        table.insert(tokens, token:sub(#token - 1) .. char)
-      else
-        local tok = token:sub(1, #token - 1)
-        if tok ~= "" then
-          table.insert(tokens, tok)
-          table.insert(tokenlines, lines)
-        end
-        table.insert(tokens, token:sub(#token) .. char)
-      end
-      table.insert(tokenlines, lines)
-      token = ""
+    elseif not quoted and token == "" and tokens[#tokens] and ((char == ">" and string.find(tokens[#tokens], "^[%-=]$")) or (char == "-" and string.find(tokens[#tokens], "^<$"))) then
+      tokens[#tokens] = tokens[#tokens] .. char
     else -- normal char
       token = token .. char
     end
@@ -394,15 +371,6 @@ local function findAssignmentOperator(tChunk, i)
   return false
 end
 
-local function findSelfCallAssignment(tChunk, i, part, line, tokenlines)
-  if tChunk[i - 1]:find(varPattern) then
-    tChunk[i] = " = " .. tChunk[i - 1] .. ":"
-    return true
-  else
-    perror("invalid :: at index " .. i .. " (line " .. line .. ")")
-  end
-end
-
 local function findDollarAssignment(tChunk, i, part, line, tokenlines)
   if tChunk[i - 1]:find("^"..varPattern.."$") then
     tChunk[i] = " = _G._selene._new(" .. tChunk[i-1] .. ")"
@@ -442,7 +410,6 @@ local keywords = {
   ["<-"   ] = findForeach,
   ["?"    ] = findTernary,
   [":"    ] = findSelfCall,
-  ["::"   ] = findSelfCallAssignment,
   --["match"] = findMatch,
   ["$"    ] = findDollars,
   ["$$"   ] = findDollarAssignment,
@@ -459,6 +426,7 @@ local keywords = {
   [">>="  ] = findAssignmentOperator,
   ["<<="  ] = findAssignmentOperator,
   ["..="  ] = findAssignmentOperator,
+  [":="   ] = findAssignmentOperator,
 }
 
 local function concatWithLines(tbl, lines, skiplines)
