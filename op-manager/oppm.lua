@@ -52,22 +52,43 @@ local function getContent(url)
   return sContent
 end
 
-local function getRepos()
+local NIL = {}
+local function cached(f)
+  return options.nocache and f or setmetatable(
+    {},
+    {
+      __index=function(t,k)
+        local v = f(k)
+        t[k] = v
+        return v
+      end,
+      __call=function(t,k)
+        if k == nil then
+          k = NIL
+        end
+        return t[k]
+      end,
+    }
+  )
+end
+
+
+local getRepos = cached(function()
   local success, sRepos = pcall(getContent,"https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
   if not success then
     io.stderr:write("Could not connect to the Internet. Please ensure you have an Internet connection.")
     return -1
   end
   return serial.unserialize(sRepos)
-end
+end)
 
-local function getPackages(repo)
+local getPackages = cached(function(repo)
   local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
   if not success or not sPackages then
     return -1
   end
   return serial.unserialize(sPackages)
-end
+end)
 
 --For sorting table values by alphabet
 local function compare(a,b)
