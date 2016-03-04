@@ -160,6 +160,7 @@ local function doTrade(addr)
         cur.t.transferItem(cur.s, cur.v, 64, mappings.config.tempSlot, i)
       end
     end
+    os.sleep(0)
   end
 end
 
