@@ -59,7 +59,7 @@ do
   end
 end
 
-local function insert(t, s, v, offered, required, returnslot)
+local function insert(t, s, v, offered, required, toReturn, returnslot, resultslot)
   local maxPaid = math.floor(offered / required)
   local toTransferMax = maxPaid * required
   local toTransfer = toTransferMax
@@ -67,25 +67,71 @@ local function insert(t, s, v, offered, required, returnslot)
     local amt = t.getSlotStackSize(s, i)
     if amt == 0 or t.compareStacks(s, i, mappings.config.tempSlot, true) then
       toTransfer = toTransfer - (t.getSlotMaxStackSize(s, mappings.config.tempSlot) - amt)
-      if toTransfer <= 0 then
-        t.transferItem(s, v, offered - toTransferMax, mappings.config.tempSlot, returnslot) -- move remaining payment back
-        for slot = mappings.config.currencySlots[1], i do
-          t.transferItem(s, s, toTransferMax, mappings.config.tempSlot, slot)
-        end
-        return maxPaid
+      if toTransfer <= 0 then -- enough space for everything
+        toTransfer = 0
+        break
       end
     end
   end
-  local paid = math.min(math.floor((toTransferMax - toTransfer) / required), t.getSlotStackSize(s, returnslot))
+  local paid = math.floor((toTransferMax - toTransfer) / required)
   if paid <= 0 then
-    return false
+    return "Payment storage slots full"
   end
+  toTransferMax = paid * toReturn
+  toTransfer = toTransferMax
+  for i = mappings.config.stockSlots[1], mappings.config.stockSlots[2] do
+    if t.compareStacks(s, i, returnslot, true) then
+      toTransfer = toTransfer - t.getSlotStackSize(s, i)
+      if toTransfer <= 0 then -- everything can be returned
+        toTransfer = 0
+        break
+      end
+    end
+  end
+
+  do
+    local maxReturned = t.getSlotMaxStackSize(s, returnslot)
+    if maxReturned > 0 then
+      paid = math.min(paid, math.floor(maxReturned / toReturn))
+    end
+  end
+  paid = math.min(paid, math.floor((toTransferMax - toTransfer) / toReturn))
+  if paid <= 0 then
+    return "Machine out of stock"
+  end
+  do
+    local max = t.getSlotMaxStackSize(v, resultslot)
+    if max > 0 then
+      local freespace = max - t.getSlotStackSize(v, resultslot)
+      if freespace < toTransferMax then
+        paid = math.min(paid, math.floor(freespace / toReturn))
+      end
+    end
+  end
+  if paid <= 0 then
+    return "payment slot full"
+  end
+
   local spent = paid * required
   t.transferItem(s, v, offered - spent, mappings.config.tempSlot, returnslot) -- move remaining payment back
   for slot = mappings.config.currencySlots[1], mappings.config.currencySlots[2] do
     t.transferItem(s, s, spent, mappings.config.tempSlot, slot)
   end
-  return paid
+  toTransferMax = paid * toReturn
+  toTransfer = toTransferMax
+  for slot = mappings.config.stockSlots[1], mappings.config.stockSlots[2] do -- move purchased items
+    if t.compareStacks(s, slot, returnslot, true) then
+      local amt = t.getSlotStackSize(s, slot)
+      t.transferItem(s, s, toTransfer, slot, mappings.config.tempSlot)
+      toTransfer = toTransfer - amt
+      if toTransfer <= 0 then -- everything has been returned
+        toTransfer = 0
+        break
+      end
+    end
+  end
+  t.transferItem(s, v, 64, mappings.config.tempSlot, resultslot)
+  return toTransferMax - toTransfer, spent
 end
 
 local function doTrade(addr)
@@ -101,12 +147,12 @@ local function doTrade(addr)
       elseif cur.t.compareStacks(cur.s, slot, mappings.config.tempSlot, true)
         and offered >= required then
         -- we have sufficient payment.
-        local paid = insert(cur.t, cur.s, cur.v, offered, required, i)
-        if paid and paid > 0 then
-          print("Transferred " .. paid .. " item(s) from slot " .. i .. " for " .. required .. " item(s) at transposer ".. cur.t.address)
-          cur.t.transferItem(cur.s, cur.v, paid, i, slot) -- move purchased items
+        local toReturn = cur.t.getSlotStackSize(cur.s, i)
+        local transferred, spent = insert(cur.t, cur.s, cur.v, offered, required, toReturn, i, slot)
+        if transferred and type(transferred) == "number" and transferred > 0 then
+          print("Transferred " .. transferred .. " item(s) from slot " .. i .. " for " .. spent .. " item(s) at transposer ".. cur.t.address)
         else
-          prerr("Failed to transfer payment: Payment storage slots full or machine out of stock at transposer " .. cur.t.address)
+          prerr("Failed to transfer payment: ".. transferred .." at transposer " .. cur.t.address)
           cur.t.transferItem(cur.s, cur.v, 64, mappings.config.tempSlot, i)
         end
       else
