@@ -171,7 +171,6 @@ local function listPackages(filter)
         local lPacks = getPackages(j.repo)
         if lPacks==nil then
           io.stderr:write("Error while trying to receive package list for " .. j.repo.."\n")
-          return
         elseif type(lPacks) == "table" then
           for k,kt in pairs(lPacks) do
             if not kt.hidden then
