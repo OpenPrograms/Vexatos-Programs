@@ -83,7 +83,7 @@ function put(path)
   io.write("Uploading to paste.asie.pl... ")
   local result, response = pcall(internet.request,
         "http://paste.asie.pl/add", 
-        "paste=" .. encode(data))
+        "paste=" .. encode(data) .. "&onlyid=yes")
 
   if result then
     local info = ""
@@ -95,7 +95,7 @@ function put(path)
       io.write(info)
     else
       io.write("success.\n")
-      local pasteId = string.match(info, "[^/]+$")
+      local pasteId = info
       io.write("Uploaded as " .. info .. "\n")
       io.write('Run "asiebin get ' .. pasteId .. '" to download anywhere.')
     end
