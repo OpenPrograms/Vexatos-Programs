@@ -37,6 +37,8 @@ local function printUsage()
   print("'oppm update <package>' to update an already installed package")
   print("'oppm update all' to update every already installed package")
   print("'oppm uninstall <package>' to remove a package from your system")
+  print("'oppm register <repository>' to register a package repository locally\n  Must be a valid GitHub repo containing programs.cfg")
+  print("'oppm unregister <repository>' to remove a package repository from your local registry")
   print(" -f: Force creation of directories and overwriting of existing files.")
 end
 
@@ -72,24 +74,6 @@ local function cached(f)
   )
 end
 
-
-local getRepos = cached(function()
-  local success, sRepos = pcall(getContent,"https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
-  if not success then
-    io.stderr:write("Could not connect to the Internet. Please ensure you have an Internet connection.")
-    return -1
-  end
-  return serial.unserialize(sRepos)
-end)
-
-local getPackages = cached(function(repo)
-  local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
-  if not success or not sPackages then
-    return -1
-  end
-  return serial.unserialize(sPackages)
-end)
-
 --For sorting table values by alphabet
 local function compare(a,b)
   for i=1,math.min(#a,#b) do
@@ -100,12 +84,16 @@ local function compare(a,b)
   return #a < #b
 end
 
-local function downloadFile(url,path,force)
+local function downloadFile(url,path,force,soft)
   if options.f or force then
     return wget("-fq",url,path)
   else
     if fs.exists(path) then
-      error("file already exists and option -f is not enabled")
+      if soft then
+        return true
+      else
+        error("file already exists and option -f is not enabled")
+      end
     end
     return wget("-q",url,path)
   end
@@ -148,6 +136,38 @@ local function saveToFile(packs)
   file:write(sPacks)
   file:close()
 end
+
+local getRepos = cached(function()
+  local success, sRepos = pcall(getContent,"https://raw.githubusercontent.com/OpenPrograms/openprograms.github.io/master/repos.cfg")
+  if not success then
+    io.stderr:write("Could not connect to the Internet. Please ensure you have an Internet connection.")
+    return -1
+  end
+  local repos = serial.unserialize(sRepos)
+  local svd = readFromFile(1)
+  if not svd then
+    io.stderr:write("Error while trying to read save file")
+    return
+  elseif svd[1] == -1 then
+    table.remove(svd, 1)
+  end
+  if svd._repos then
+    for i, j in pairs(svd._repos) do
+      if not repos[i] then
+        repos[i] = j
+      end
+    end
+  end
+  return repos
+end)
+
+local getPackages = cached(function(repo)
+  local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
+  if not success or not sPackages then
+    return -1
+  end
+  return serial.unserialize(sPackages)
+end)
 
 local function listPackages(filter)
   filter = filter or false
@@ -455,8 +475,10 @@ local function installPackage(pack,path,update)
   end
   if update then
     term.write("Removing old files...")
-    for _,j in pairs(tPacks[pack]) do
-      fs.remove(j)
+    for i,j in pairs(tPacks[pack]) do
+      if not string.find(i, "^%?") then
+        fs.remove(j)
+      end
     end
     term.write("Done.\n")
   end
@@ -477,7 +499,8 @@ local function installPackage(pack,path,update)
       end
       nPath = fs.concat(path,j,string.gsub(i,".+(/.-)$","%1"),nil)
     end
-    local success,response = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..i,nPath)
+    local soft = string.find(i, "^%?") and fs.exists(nPath)
+    local success,response = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..string.gsub(i,"^%?",""),nPath, nil, soft)
     if success and response then
       tPacks[pack][i] = nPath
     else
@@ -492,7 +515,6 @@ local function installPackage(pack,path,update)
       return
     end
   end
-  saveToFile(tPacks)
 
   if info.dependencies then
     term.write("Done.\nInstalling Dependencies...\n")
@@ -587,6 +609,62 @@ local function updatePackage(pack)
   end
 end
 
+local function registerRepo(repo)
+  if not repo then
+    printUsage()
+    return
+  end
+  print("Checking Repository "..repo)
+  local lPacks = getPackages(repo)
+  if type(lPacks) == "table" then
+    local svd = readFromFile(1)
+    if not svd then
+      io.stderr:write("Error while trying to read save file")
+      return
+    elseif svd[1] == -1 then
+      table.remove(svd, 1)
+    end
+    svd._repos = svd._repos or {}
+    if svd._repos[repo] then
+      io.stderr:write("Repository " .. repo.." already registered\n")
+      return
+    else
+      svd._repos[repo] = {["repo"] = repo}
+      saveToFile(svd)
+      term.write("Done.\n")
+      print("Successfully registered repository "..repo)
+    end
+  else
+    io.stderr:write("Repository " .. repo.." not found or not containing programs.cfg\n")
+    return
+  end
+end
+
+local function unregisterRepo(repo)
+  if not repo then
+    printUsage()
+    return
+  end
+  local svd = readFromFile(1)
+  if not svd then
+    io.stderr:write("Error while trying to read save file")
+    return
+  elseif svd[1] == -1 then
+    table.remove(svd, 1)
+  end
+  if svd._repos then
+    if not svd._repos[repo] then
+      io.stderr:write("Repository " .. repo .. " not registered\n")
+      return
+    else
+      svd._repos[repo] = nil
+      saveToFile(svd)
+      term.write("Done.\n")
+      print("Successfully unregistered repository " .. repo)
+    end
+  end
+end
+
 if args[1] == "list" then
   if not getInternet() then return end
   local packs = listPackages(args[2])
@@ -602,6 +680,11 @@ elseif args[1] == "update" then
   updatePackage(args[2])
 elseif args[1] == "uninstall" then
   uninstallPackage(args[2])
+elseif args[1] == "register" then
+  if not getInternet() then return end
+  registerRepo(args[2])
+elseif args[1] == "unregister" then
+  unregisterRepo(args[2])
 else
   printUsage()
   return
