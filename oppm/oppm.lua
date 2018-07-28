@@ -464,7 +464,7 @@ local function installPackage(pack,path,update)
     if options.f then
       fs.makeDirectory(path)
     else
-      print("Directory does not exist.")
+      print("Directory '"..tostring(path).."' does not exist.")
       return
     end
   end
@@ -547,11 +547,11 @@ local function installPackage(pack,path,update)
           return tPacks
         end
       else
-        local depInfo = getInformation(string.lower(i))
+        local depInfo = getInformation(string.lower(j))
         if not depInfo then
-          term.write("\nDependency package "..i.." does not exist.")
+          term.write("\nDependency package '"..j.."' does not exist.")
         end
-        local tNewPacks = installPackage(string.lower(i),nPath,update)
+        local tNewPacks = installPackage(string.lower(j),path,update)
         if tNewPacks then
           tPacks = tNewPacks
         end
