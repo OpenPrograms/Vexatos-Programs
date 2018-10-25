@@ -396,8 +396,8 @@ local function provideInfo(pack)
   end
 end
 
-local function installPackage(pack,path,update)
-  local tPacks = readFromFile(1)
+local function installPackage(pack,path,update,tPacks)
+  tPacks = tPacks or readFromFile(1)
   update = update or false
   if not pack then
     printUsage()
@@ -551,7 +551,7 @@ local function installPackage(pack,path,update)
         if not depInfo then
           term.write("\nDependency package "..i.." does not exist.")
         end
-        local tNewPacks = installPackage(string.lower(i),nPath,update)
+        local tNewPacks = installPackage(string.lower(i),nPath,update,tPacks)
         if tNewPacks then
           tPacks = tNewPacks
         end
