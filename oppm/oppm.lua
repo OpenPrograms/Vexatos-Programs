@@ -214,7 +214,7 @@ local function listPackages(filter)
     local lPacks = {}
     local packs = readFromFile(1)
     for i in pairs(packs) do
-      if pack:sub(1,1) ~= "_" then
+      if i:sub(1,1) ~= "_" then
         table.insert(lPacks,i)
       end
     end
