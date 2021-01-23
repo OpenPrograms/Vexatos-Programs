@@ -214,7 +214,9 @@ local function listPackages(filter)
     local lPacks = {}
     local packs = readFromFile(1)
     for i in pairs(packs) do
-      table.insert(lPacks,i)
+      if pack:sub(1,1) ~= "_" then
+        table.insert(lPacks,i)
+      end
     end
     packages = lPacks
   end
@@ -424,6 +426,11 @@ local function installPackage(pack,path,update,tPacks)
     table.remove(tPacks,1)
   end
 
+  if pack:sub(1,1) == "_" then
+    print("Invalid package name.")
+    return
+  end
+
   local info,repo = getInformation(pack)
   if not info then
     print("Package does not exist")
@@ -573,10 +580,13 @@ local function uninstallPackage(pack)
     table.remove(tFiles,1)
   end
   if not tFiles[pack] then
-      print("Package has not been installed.")
-      print("If it has, the package could not be identified.")
-      print("In this case you have to remove it manually.")
-      return
+    print("Package has not been installed.")
+    print("If it has, the package could not be identified.")
+    print("In this case you have to remove it manually.")
+    return
+  elseif pack:sub(1,1) == "_" then
+    print("Invalid package name.")
+    return
   end
   term.write("Removing package files...")
   for i,j in pairs(tFiles[pack]) do
@@ -601,8 +611,10 @@ local function updatePackage(pack)
     end
     local done = false
     for i in pairs(tFiles) do
-      installPackage(i,nil,true)
-      done = true
+      if i:sub(1,1) ~= "_" then
+        installPackage(i,nil,true)
+        done = true
+      end
     end
     if not done then
       print("No package has been installed so far.")
