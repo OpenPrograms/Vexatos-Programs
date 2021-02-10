@@ -22,7 +22,7 @@ local function get(pasteId, filename)
   end
 
   io.write("Downloading from paste.asie.pl... ")
-  local url = "http://paste.asie.pl/raw/" .. pasteId
+  local url = "https://paste.asie.pl/raw/" .. pasteId
   local result, response = pcall(internet.request, url)
   if result then
     io.write("success.\n")
@@ -82,7 +82,7 @@ function put(path)
 
   io.write("Uploading to paste.asie.pl... ")
   local result, response = pcall(internet.request,
-        "http://paste.asie.pl/add", 
+        "https://paste.asie.pl/add", 
         "paste=" .. encode(data) .. "&onlyid=yes")
 
   if result then
