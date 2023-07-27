@@ -163,7 +163,7 @@ end)
 
 local getPackages = cached(function(repo)
   -- Use a "token" parameter to avoid hitting github's cache
-  local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg?token="..string.format("%d", os.time()))
+  local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg?token="..string.format("%d", math.floor(os.time())))
   if not success or not sPackages then
     return -1
   end
@@ -512,7 +512,7 @@ local function installPackage(pack,path,update,tPacks)
     end
     local soft = string.find(i, "^%?") and fs.exists(nPath)
     -- Use a "token" parameter to avoid hitting github's cache
-    local success,response = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..string.gsub(i,"^%?","") .. "?token=" .. string.format("%d", os.time()),nPath, nil, soft)
+    local success,response = pcall(downloadFile,"https://raw.githubusercontent.com/"..repo.."/"..string.gsub(i,"^%?","") .. "?token=" .. string.format("%d", math.floor(os.time())),nPath, nil, soft)
     if success and response then
       tPacks[pack][i] = nPath
     else
