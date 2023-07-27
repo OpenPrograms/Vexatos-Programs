@@ -299,8 +299,14 @@ local function parseFolders(pack, repo, info)
     return tFiles
   end
 
+  local fileInfo = {}
+  for i, j in pairs(info.files) do
+    fileInfo[i] = j
+  end
+
   local newInfo = info
-  for i,j in pairs(info.files) do
+
+  for i,j in pairs(fileInfo) do
     if string.find(i,"^:")  then
       local iPath = i:gsub("^:","")
       local branch = string.gsub(iPath,"^(.-)/.+","%1"):gsub("/*$",""):gsub("^/*","")
