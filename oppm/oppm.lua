@@ -545,6 +545,9 @@ local function installPackage(pack,path,update,tPacks)
       end
       if string.lower(string.sub(i,1,4))=="http" then
         nPath = fs.concat(nPath, string.gsub(i,".+(/.-)$","%1"),nil)
+        if not fs.exists(fs.path(nPath)) then
+          fs.makeDirectory(fs.path(nPath))
+        end
         local success,response = pcall(downloadFile,i,nPath)
         if success and response then
           tPacks[pack][i] = nPath
