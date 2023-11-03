@@ -165,7 +165,10 @@ local getPackages = cached(function(repo)
   -- Use a "token" parameter to avoid hitting github's cache
   local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg?token="..string.format("%d", math.floor(os.time())))
   if not success or not sPackages then
-    return -1
+    success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/main/programs.cfg")
+    if not success or not sPackages then
+	  return -1
+    end
   end
   return serial.unserialize(sPackages)
 end)
