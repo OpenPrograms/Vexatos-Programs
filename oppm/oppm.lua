@@ -164,7 +164,10 @@ end)
 local getPackages = cached(function(repo)
   local success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/master/programs.cfg")
   if not success or not sPackages then
-    return -1
+    success, sPackages = pcall(getContent,"https://raw.githubusercontent.com/"..repo.."/main/programs.cfg")
+    if not success or not sPackages then
+	  return -1
+    end
   end
   return serial.unserialize(sPackages)
 end)
